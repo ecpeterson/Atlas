@@ -1,0 +1,61 @@
+
+The mind-map is a directed graph of nodes.
+
+The user can see a chain of nodes leading up to the present one. (Ideally, the whole history of the chain would be visible if desired, but just the most recent one or two historical nodes would be visible by default.)
+
+Of the nodes referenced by the current node, the software determines which nodes are likely to be most interesting and displays a reasonable number of them to the user.
+
+A node has the following properties:
+    A type
+    An owner user id
+    A title
+    A "Resolved" checkbox
+    Text, potentially rendered with MathJAX
+    A list of nodes it has outgoing references to
+    A list of nodes it contains
+    A (possibly empty) reference to its parent container node
+    A (possibly empty) reference to its parent workspace node
+    A BLOB of attachments?
+    A list recording who it's shared with.
+    	For workspace nodes, this means a list of user ids.
+    	For standard nodes, I'm not sure what this means. It might mean user ids, but I suspect it means a list of node ids which have been duplicated from this node in other user environments.
+    An 'original owner' user id?
+
+A node can have the following types, which mostly affect display:
+    Standard: contains text, an idea, some attachments.
+    Container: contains other nodes, organizes them into a coherent project. Container nodes organize the whole ATLAS universe into a tree.
+    Workspace: contains other nodes, shares them in a read-write environment with other ATLAS users.
+
+~          ~           ~
+
+There are two kinds of sharing: collaborative workspaces and noncollaborative nodes.
+
+Collaborative workspace: 
+    A container node which is shared across users.  Nodes dropped into this workspace are visible to and can be edited by all the users on the ownership list of the workspace node.
+
+    Question: How should one deal with allowing users to delete shared nodes?  In particular, users are allowed to have private nodes reference shared nodes. What should happen to these references if the shared node is deleted? Some ideas: 
+        Shared nodes should only be allowed to be 'merged' with some other existing node. All references are updated to point to the merged node.
+
+        'Merging' is always an option, but 'deleting' a shared node always silently means merging it with the parent workspace, so that private references don't get completely lost. Maybe bad references can be mentioned to their owner so that they have a chance to be manually updated.
+
+        Deleting the shared node also deletes all of its references.
+
+Noncollaborative node:
+	A private node which is marked as read-only for a set selection of other users. They are allowed to make references to this node and to view its contents, but they can't edit it. This is the sort of sharing you'd want to, say, broadcast a preprint while not allowing the other users to edit it, as you're not actually part of a shared project.
+
+	Question: How should the software deal with the owner updating a noncollaboratively shared node? Some ideas:
+		Immediately copy the shared node into other people's collections, so that the node's contents are fixed and non-removable by the original owner.
+
+		If the owner deletes the node, create copies for the other users and mark it as 'orphaned' by the original owner.
+
+		The owner retains full control over the node, so that if they modify or delete it those changes are reflected everywhere.
+
+		Some kind of offer system, where when the owner edits the node the other users are given the option to update their node to reflect the owner's node's new state.  (If they decline, it should be possible to change that choice later and update. If they update, I don't know whether it should be possible to revert to an old state. Probably not.)
+
+~          ~           ~
+
+Eventually we'll want to render these nodes nicely. Matt Pancia says that D3 offers a ton of smart ways to do drawing, and he suggests looking at the following URLs:
+
+    http://d3js.org ,
+
+    https://github.com/mbostock/d3/wiki/Tutorials .

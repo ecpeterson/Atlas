@@ -1,0 +1,12 @@
+ATLAS ==========================================================================
+Project management / collaboration / mindmapping web application
+================================================================================
+
+Originally intended for researches in mathematics, ATLAS is meant to provide a
+long-term host for evolving ideas, interacting with each other and across users.
+
+Built with:
+    Node.js
+    MongoDB
+    Express
+    Passport
