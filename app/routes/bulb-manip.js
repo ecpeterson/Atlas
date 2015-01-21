@@ -3,9 +3,6 @@
 
 var Bulb = require('../models/bulb.js');
 
-// XXX: these routines all need to check that the user has permission to inspect
-// and modify the bulb that they're querying about!!
-
 module.exports = function(app) {
 	// REQUEST INDIVIDUAL BULB DATA ============================================
 	app.get('/bulb/:id', app.isLoggedIn, function(req, res) {
@@ -14,14 +11,30 @@ module.exports = function(app) {
 			if (err)
 				res.send({ msg : err });
 
+			if (!(bulb.hasReadAccess(req.user._id))) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
 			res.send(bulb);
 		});
 	});
 
 	// DELETE INDIVIDUAL BULB ==================================================
 	app.delete('/bulb/:id', app.isLoggedIn, function(req, res) {
-		Bulb.remove({ _id : req.params.id }, function (err) {
-			res.send({ msg : err });
+		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+			// check for errors
+			if (err)
+				res.send({ msg : err });
+
+			if (!(bulb.hasWriteAccess(req.user._id))) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
+			Bulb.remove({ _id : req.params.id }, function (err) {
+				res.send({ msg : err });
+			});
 		});
 	});
 

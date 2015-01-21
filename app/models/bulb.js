@@ -21,16 +21,32 @@ var bulbSchema = mongoose.Schema({
 	// BLOB of attachments?
 });
 
-// METHODS ====================================================================
+// METHODS =====================================================================
 
 // cf. app/models/user.js for how to attach methods to a bulb object
 
-var Bulb = mongoose.model('Bulb', bulbSchema);
-
-Bulb.types = {
+var bulbTypes = {
 	STANDARD : "STANDARD",
 	CONTAINER : "CONTAINER",
 	WORKSPACE : "WORKSPACE"
 };
+
+bulbSchema.methods.hasReadAccess = function(user_id) {
+	return (((this.type == bulbTypes.STANDARD) &&
+				(this.ownerId == user_id)) ||
+			// other bulb types
+			false);
+};
+
+bulbSchema.methods.hasWriteAccess = function(user_id) {
+	return (((this.type == bulbTypes.STANDARD) &&
+				(this.ownerId == user_id)) ||
+			// other bulb types
+			false);
+};
+
+var Bulb = mongoose.model('Bulb', bulbSchema);
+
+Bulb.types = bulbTypes;
 
 module.exports = Bulb;
