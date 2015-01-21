@@ -5,7 +5,7 @@ var LocalStrategy = require('passport-local').Strategy;
 
 var User = require('../app/models/user');
 
-module.exports = function(passport) {
+module.exports = function(app, passport) {
 	// PASSPORT SESSION SETUP =================================================
 	// this is required for persistent login sessions. passport needs to be
 	// able to de/serialize users out of session.
@@ -90,4 +90,13 @@ module.exports = function(passport) {
 			});
 		})
 	);
+
+	app.isLoggedIn = function(req, res, next) {
+		// if the user has authenticated for the session, carry on
+		if (req.isAuthenticated())
+			return next();
+
+		// if they aren't, then bounce them to the login page
+		res.redirect('/login');
+	};
 };

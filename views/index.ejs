@@ -3,7 +3,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>Node Authentication</title>
+    <title>Atlas</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
     <style>
@@ -16,14 +16,63 @@
     <div class="jumbotron text-center">
         <h1><span class="fa fa-lock"></span> Atlas</h1>
 
-        <p>Congratulations on registering and logging in.</p>
+        <p>Registered user functions:</p>
 
-        <p>Registered functions:</p>
-
-        <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span>Logout</a>
+        <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span> Logout</a>
         <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
+
+        <p>Data in highlighted node:</p>
+        <div id="bulbInfo">
+            <p>
+                <strong>Title:</strong>
+                <span id="bulbInfoTitle"></span>
+                <br />
+                <strong>Id:</strong>
+                <span id="bulbInfoId"></span>
+                <br />
+                <strong>Type:</strong>
+                <span id="bulbInfoType"></span>
+                <br />
+                <strong>Resolved:</strong>
+                <span id="bulbInfoResolved"></span>
+                <br />
+                <strong>Outgoing Nodes:</strong>
+                <span id="bulbInfoOutgoingNodes"></span>
+                <br />
+                <strong>Modification Time:</strong>
+                <span id="bulbInfoModificationTime"></span>
+                <br />
+                <strong>Parents (Workspace):</strong>
+                <span id="bulbInfoParentsWorkspaceId"></span>
+                <br />
+                <strong>Parents (Container):</strong>
+                <span id="bulbInfoParentsContainerId"></span>
+                <br />
+                <strong>Parents (Original):</strong>
+                <span id="bulbInfoParentsOriginalId"></span>
+                <br />
+                <strong>Shares:</strong>
+                <span id="bulbInfoShares"></span>
+                <br />
+                <strong>Text:</strong>
+                <span id="bulbInfoText"></span>
+                <br />
+            </p>
+        </div>
+
+        <p>Available nodes:</p>
+        <div id="bulbList">
+            <ul>
+                <!-- This will get populated. -->
+            </ul>
+        </div>
+        <fieldset>
+            <button id="btnNewBulb">New Bulb</button>
+        </fieldset>
     </div>
 
 </div>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/javascript/global.js"></script>
 </body>
 </html>

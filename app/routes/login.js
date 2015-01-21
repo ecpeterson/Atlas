@@ -1,13 +1,7 @@
 
-// app/routes.js
+// app/routes/login.js
 
 module.exports = function(app, passport) {
-	// HOME PAGE ===============================================================
-	// loads the index.ejs file
-	app.get('/', isLoggedIn, function(req, res) {
-		res.render('index.ejs');
-	});
-
 	// LOGIN ===================================================================
 	// show the login form
 	app.get('/login', function(req, res) {
@@ -46,7 +40,7 @@ module.exports = function(app, passport) {
 	// PROFILE PAGE ============================================================
 	// we will want this to be protected, so that you have to be logged in to
 	// visit it. we will use route middleware to verify this: isLoggedIn.
-	app.get('/profile', isLoggedIn, function(req, res) {
+	app.get('/profile', app.isLoggedIn, function(req, res) {
 		res.render('profile.ejs', {
 			user : req.user // pass the user out of the session to the template
 		});
@@ -57,15 +51,4 @@ module.exports = function(app, passport) {
 		req.logout();
 		res.redirect('/');
 	});
-};
-
-// UTILITY FUNCTIONS ===========================================================
-
-function isLoggedIn(req, res, next) {
-	// if the user has authenticated for the session, carry on
-	if (req.isAuthenticated())
-		return next();
-
-	// if they aren't, then bounce them to the login page
-	res.redirect('/login');
 };

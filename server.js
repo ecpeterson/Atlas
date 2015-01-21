@@ -7,6 +7,7 @@
 
 // SET UP =====================================================================
 var express = require('express'),
+	path = require('path'),
     app = express(),
     port = process.env.PORT || 8080,
     mongoose = require('mongoose'),
@@ -26,12 +27,13 @@ var configDB = require('./config/database.js');
 mongoose.connect(configDB.url);
 
 // pass the passport object in for configuration
-require('./config/passport')(passport);
+require('./config/passport')(app, passport);
 
 app.use(morgan('dev'));  // log a lot
 app.use(cookieParser()); // used for auth
 app.use(bodyParser());   // used to read info from forms
 app.set('view engine', 'ejs'); // templating engine
+app.use(express.static(path.join(__dirname, 'public'))); // permit static files
 
 // secret used by passport
 app.use(session({
@@ -43,8 +45,9 @@ app.use(flash()); // "use connect-flash for flash messages stored in session"
 
 // ROUTES =====================================================================
 
-// this loads our routes. passes in the app and the fully configured passport
-require('./app/routes.js')(app, passport);
+require('./app/routes/login.js')(app, passport);
+require('./app/routes/index.js')(app);
+require('./app/routes/bulb-manip.js')(app);
 
 // LAUNCH =====================================================================
 
