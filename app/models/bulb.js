@@ -3,15 +3,21 @@
 
 var mongoose = require('mongoose');
 
+var bulbTypes = {
+	STANDARD : "STANDARD",
+	CONTAINER : "CONTAINER",
+	WORKSPACE : "WORKSPACE"
+};
+
 // define the schema for our bulb model
 var bulbSchema = mongoose.Schema({
-	type : String,
+	type : { type : String, default : bulbTypes.STANDARD },
 	ownerId : String,
-	title : String,
-	resolved : Boolean,
+	title : { type : String, default : 'Default Title' },
+	resolved : { type : Boolean, default : false },
 	text : String,
 	outgoingNodes : [ String ],
-	modificationTime : Date,
+	modificationTime : { type : Date, default : Date.now },
 	parents : {
 		workspaceId : String,
 		containerId : String,
@@ -24,12 +30,6 @@ var bulbSchema = mongoose.Schema({
 // METHODS =====================================================================
 
 // cf. app/models/user.js for how to attach methods to a bulb object
-
-var bulbTypes = {
-	STANDARD : "STANDARD",
-	CONTAINER : "CONTAINER",
-	WORKSPACE : "WORKSPACE"
-};
 
 bulbSchema.methods.hasReadAccess = function(user_id) {
 	return (((this.type == bulbTypes.STANDARD) &&

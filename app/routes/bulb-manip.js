@@ -49,19 +49,14 @@ module.exports = function(app) {
 		Bulb.find({ ownerId : req.user._id }, function(err, bulbs) {
 			// check for errors
 			// return the array of bulbs
-			res.json(bulbs);
+			res.send(bulbs);
 		});
 	});
 
 	// CONSTRUCT NEW BULB ======================================================
 	app.post('/newbulb', app.isLoggedIn, function(req, res) {
 		var bulb = new Bulb();
-
-		// populate the bulb with some default information
-		bulb.ownerId = req.user._id;
-		bulb.type = Bulb.types.STANDARD;
-		bulb.title = "Default Title";
-		bulb.modificationTime = new Date();
+		bulb.ownerId = req.user._id; // take immediate ownership of the new bulb
 
 		// write the bulb to the database
 		bulb.save(function(err) {
