@@ -1,6 +1,7 @@
 // if we were to need persistent globals, they'd go here.
 
 var activeBulbId = '';
+var activeBulb = {};
 
 // DOM Ready ===================================================================
 $(document).ready(function() {
@@ -19,6 +20,7 @@ $(document).ready(function() {
     // element, and then key on what you actually want in the parameter list.
     $('#bulbInfo').on('click', 'a.linkDeleteBulb', deleteBulb);
 
+    $('#bulbInfo').on('click', 'a.linkUpdateBulb', updateBulb);
 });
 
 // Functions ===================================================================
@@ -73,20 +75,29 @@ function showBulbInfo(event) {
 
     // retrieve the bulb's information from /node/.
     $.getJSON('/bulb/' + activeBulbId, function(response) {
-        if (response.msg)
+        if (response.msg) {
             alert('Error: ' + response.msg);
+            return;
+        }
 
-        $('#bulbInfoTitle').text(response.title);
+        activeBulb = response;
+
+        // TODO: I do not understand why jQuery is returning a list of results
+        // for #bulbInfoResolved.
+
+        $('#bulbInfoTitle').val(response.title);
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
-        $('#bulbInfoResolved').text(response.resolved);
+        $('#bulbInfoResolved')[0].checked = response.resolved;
         $('#bulbInfoOutgoingNodes').text(response.outgoingNodes);
         $('#bulbInfoModificationTime').text(response.modificationTime);
-        $('#bulbInfoParentsWorkspaceId').text(response.parents.workspaceId);
-        $('#bulbInfoParentsContainerId').text(response.parents.containerId);
-        $('#bulbInfoParentsOriginalId').text(response.parents.originalId);
+        if (response.parents) {
+            $('#bulbInfoParentsWorkspaceId').text(response.parents.workspaceId);
+            $('#bulbInfoParentsContainerId').text(response.parents.containerId);
+            $('#bulbInfoParentsOriginalId').text(response.parents.originalId);
+        }
         $('#bulbInfoShares').text(response.shares);
-        $('#bulbInfoText').text(response.text);
+        $('#bulbInfoText').val(response.text);
     });
 };
 
@@ -114,6 +125,34 @@ function deleteBulb(event) {
         
         populateTable();
         $('#bulbInfo span').text('');
+        $('#bulbInfo input').val('');
         activeBulbId = '';
+        activeBulb = {};
+    });
+};
+
+// updates a bulb
+function updateBulb(event) {
+    event.preventDefault();
+
+    if (activeBulbId == '')
+        return;
+
+    var freshBulb = activeBulb;
+    freshBulb.title = $('#bulbInfoTitle').val();
+    freshBulb.resolved = $('#bulbInfoResolved')[0].checked;
+    freshBulb.text = $('#bulbInfoText').val();
+
+    $.ajax({
+        type : 'PUT',
+        url : '/bulb/' + activeBulbId,
+        data : freshBulb,
+        dataType : 'JSON'
+    }).done(function(response) {
+        if (response.msg)
+            alert('Error: ' + response.msg);
+
+        populateTable();
+        showBulbInfo();
     });
 };

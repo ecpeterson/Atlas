@@ -23,24 +23,24 @@
 
         <p>Data in highlighted node:</p>
         <div id="bulbInfo">
-            <p>
-                <strong>Title:</strong>
-                <span id="bulbInfoTitle"></span>
-                <br />
+            <fieldset>
                 <strong>Id:</strong>
                 <span id="bulbInfoId"></span>
                 <br />
                 <strong>Type:</strong>
                 <span id="bulbInfoType"></span>
                 <br />
-                <strong>Resolved:</strong>
-                <span id="bulbInfoResolved"></span>
-                <br />
                 <strong>Outgoing Nodes:</strong>
                 <span id="bulbInfoOutgoingNodes"></span>
                 <br />
                 <strong>Modification Time:</strong>
                 <span id="bulbInfoModificationTime"></span>
+                <br />
+                <strong>Title:</strong>
+                <input id="bulbInfoTitle" type="text" placeholder="Title" />
+                <br />
+                <strong>Resolved:</strong>
+                <input id="bulbInfoResolved" type="checkbox" />
                 <br />
                 <strong>Parents (Workspace):</strong>
                 <span id="bulbInfoParentsWorkspaceId"></span>
@@ -54,12 +54,12 @@
                 <strong>Shares:</strong>
                 <span id="bulbInfoShares"></span>
                 <br />
-                <strong>Text:</strong>
-                <span id="bulbInfoText"></span>
+                <textarea id="bulbInfoText"></textarea>
                 <br />
                 <br />
-                <a href="#" class="linkDeleteBulb" title="Delete Active Bulb">Delete Active Bulb</a>
-            </p>
+                <a href="#" class="btn btn-default linkUpdateBulb">Update Active Bulb</a>
+                <a href="#" class="btn btn-default linkDeleteBulb">Delete Active Bulb</a>
+            </fieldset>
         </div>
 
         <p>Available nodes:</p>

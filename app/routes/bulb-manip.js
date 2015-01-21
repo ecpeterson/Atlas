@@ -38,6 +38,36 @@ module.exports = function(app) {
 		});
 	});
 
+	// UPDATE INDIVIDUAL BULB ==================================================
+	app.put('/bulb/:id', app.isLoggedIn, function(req, res) {
+		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+			if (err)
+				res.send({ msg : err });
+
+			if (!(bulb.hasWriteAccess(req.user._id))) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
+			var newBulb = req.body;
+
+			// copy over the non-internal bulb attributes and save the new bulb
+			bulb.title = newBulb.title;
+			bulb.text = newBulb.text;
+			bulb.resolved = newBulb.resolved;
+			bulb.outgoingNodes = newBulb.outgoingNodes;
+			bulb.modificationTime = new Date();
+			bulb.parents = newBulb.parents;
+
+			bulb.save(function(err) {
+				if (err)
+					res.send({ msg : err });
+
+				res.json(bulb);
+			});
+		});
+	});
+
 	// REQUEST BULBS VISIBLE TO USER ===========================================
 	app.get('/visiblebulbs', app.isLoggedIn, function(req, res) {
 		// there are three kinds of nodes visible to the user:
