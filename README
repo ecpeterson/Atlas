@@ -8,6 +8,6 @@ long-term host for evolving ideas, interacting with each other and across users.
 
 Built with:
     Node.js
-    MongoDB
+    MongoDB / Mongoose
     Express
     Passport
