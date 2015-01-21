@@ -3,6 +3,9 @@
 
 var Bulb = require('../models/bulb.js');
 
+// XXX: these routines all need to check that the user has permission to inspect
+// and modify the bulb that they're querying about!!
+
 module.exports = function(app) {
 	// REQUEST INDIVIDUAL BULB DATA ============================================
 	app.get('/bulb/:id', app.isLoggedIn, function(req, res) {
@@ -45,6 +48,7 @@ module.exports = function(app) {
 		bulb.ownerId = req.user._id;
 		bulb.type = Bulb.types.STANDARD;
 		bulb.title = "Default Title";
+		bulb.modificationTime = new Date();
 
 		// write the bulb to the database
 		bulb.save(function(err) {
