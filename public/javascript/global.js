@@ -1,5 +1,7 @@
 // if we were to need persistent globals, they'd go here.
 
+var activeBulbId = '';
+
 // DOM Ready ===================================================================
 $(document).ready(function() {
 	// populate the bulb list on initial page load
@@ -15,7 +17,7 @@ $(document).ready(function() {
     //
     // remark: you must hook jQuery on a static page element, like the tbody
     // element, and then key on what you actually want in the parameter list.
-    $('#bulbList ul').on('click', 'li a.linkDeleteBulb', deleteBulb);
+    $('#bulbInfo').on('click', 'a.linkDeleteBulb', deleteBulb);
 
 });
 
@@ -33,8 +35,6 @@ function populateTable() {
             listContent += '<li>';
             listContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
                            '" title="Show details">' + this.title + '</a> ';
-            listContent += '(<a href="#" class="linkDeleteBulb" rel="' +
-                           this._id + '" title="Delete bulb">delete</a>)';
             listContent += '</li>';
 		});
 
@@ -69,10 +69,10 @@ function showBulbInfo(event) {
 	// prevents the browser from going anywhere
 	event.preventDefault();
 
-	var thisBulbId = $(this).attr('rel');
+	activeBulbId = $(this).attr('rel');
 
     // retrieve the bulb's information from /node/.
-    $.getJSON('/bulb/' + thisBulbId, function(response) {
+    $.getJSON('/bulb/' + activeBulbId, function(response) {
         if (response.msg)
             alert('Error: ' + response.msg);
 
@@ -95,7 +95,10 @@ function deleteBulb(event) {
     // prevents the browser from going anywhere
     event.preventDefault();
 
-    var confirmation = confirm('Are you sure you want to delete this bulb?');
+    if (activeBulbId == '')
+        return;
+
+    var confirmation = confirm('Are you sure you want to delete the active bulb?');
 
     if (confirmation === false) {
         return false;
@@ -104,12 +107,13 @@ function deleteBulb(event) {
     // OK, they said they really want to delete the bulb. let's do it.
     $.ajax({
         type : 'DELETE',
-        url : '/bulb/' + $(this).attr('rel')
+        url : '/bulb/' + activeBulbId
     }).done(function(response) {
         if (response.msg)
             alert('Error: ' + response.msg);
         
         populateTable();
         $('#bulbInfo span').text('');
+        activeBulbId = '';
     });
 };
