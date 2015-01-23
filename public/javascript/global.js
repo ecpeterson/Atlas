@@ -17,7 +17,7 @@ $(document).ready(function() {
     // when a 'delete' button is clicked, call the JS routine below
     //
     // remark: you must hook jQuery on a static page element, like the tbody
-    // element, and then key on what you actually want in the parameter list.
+    // element, and then key on what you actually want in the second parameter.
     $('#bulbInfo').on('click', 'a.linkDeleteBulb', deleteBulb);
 
     $('#bulbInfo').on('click', 'a.linkUpdateBulb', updateBulb);
@@ -67,11 +67,14 @@ function newBulb(event) {
 };
 
 // populates the detailed bulb info fields upon request
-function showBulbInfo(event) {
+function showBulbInfo(event, bulbId) {
 	// prevents the browser from going anywhere
 	event.preventDefault();
 
-	activeBulbId = $(this).attr('rel');
+    if (bulbId)
+        activeBulbId = bulbId;
+	else
+        activeBulbId = $(this).attr('rel');
 
     // retrieve the bulb's information from /node/.
     $.getJSON('/bulb/' + activeBulbId, function(response) {
@@ -98,6 +101,9 @@ function showBulbInfo(event) {
         }
         $('#bulbInfoShares').text(response.shares);
         $('#bulbInfoText').val(response.text);
+        $('#bulbInfoRenderedText').text(response.text);
+
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
     });
 };
 
@@ -153,6 +159,6 @@ function updateBulb(event) {
             alert('Error: ' + response.msg);
 
         populateTable();
-        showBulbInfo();
+        showBulbInfo(event, activeBulbId);
     });
 };
