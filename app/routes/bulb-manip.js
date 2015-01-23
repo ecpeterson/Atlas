@@ -55,8 +55,28 @@ module.exports = function(app) {
 			bulb.title = newBulb.title;
 			bulb.text = newBulb.text;
 			bulb.resolved = newBulb.resolved;
-			bulb.outgoingNodes = newBulb.outgoingNodes;
 			bulb.modificationTime = new Date();
+
+			// the list of outgoing references needs to be validated.
+			// TODO: is this too abusive of the database? can we 'map' all the
+			// id strings to bulbs in one go?
+			var validatedOutgoingNodes = newBulb.outgoingNodes.filter(
+				function(element) {
+					Bulb.findOne({ _id : element }, function(err, bulb) {
+						if (err) {
+							// is this too lazy? if we, like, fail to connect
+							// to the database, we don't want to just delete
+							// all of the node's references... do we?
+							return false;
+						}
+						else {
+							return bulb.hasReadAccess(req.user._id);
+						}
+					});
+				});
+			bulb.outgoingNodes = validatedOutgoingNodes;
+
+			// TODO: the node's parents also need to be validated
 			bulb.parents = newBulb.parents;
 
 			bulb.save(function(err) {
@@ -78,12 +98,17 @@ module.exports = function(app) {
 		// for now, i'm just going to return a list of nodes they actually own.
 		Bulb.find({ ownerId : req.user._id }, function(err, bulbs) {
 			// check for errors
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+			
 			// return the array of bulbs
 			res.send(bulbs);
 		});
 	});
 
-	// CONSTRUCT NEW BULB ======================================================
+	// CONSTRUCT NEW STANDARD BULB =============================================
 	app.post('/newbulb', app.isLoggedIn, function(req, res) {
 		var bulb = new Bulb();
 		bulb.ownerId = req.user._id; // take immediate ownership of the new bulb
