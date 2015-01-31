@@ -31,7 +31,8 @@ require('./config/passport')(app, passport);
 
 app.use(morgan('dev'));  // log a lot
 app.use(cookieParser()); // used for auth
-app.use(bodyParser());   // used to read info from forms
+app.use(bodyParser.json());   // used to read info from forms
+app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs'); // templating engine
 app.use(express.static(path.join(__dirname, 'public'))); // permit static files
 

@@ -21,6 +21,10 @@
         <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span> Logout</a>
         <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
 
+        <div id="divSVG">
+            <p>Bulb Graph:</p>
+        </div>
+
         <p>Data in highlighted node:</p>
         <div id="bulbInfo">
             <fieldset>
@@ -75,8 +79,18 @@
     </div>
 
 </div>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script src="/javascript/global.js"></script>
+
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+
+<script src="http://d3js.org/d3.v3.min.js"></script> <!-- Need this for graph drawing -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> <!-- Need this for various operations, including searchbox -->
+
+<script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"> </script> <!-- Need this for the searchbox -->
+
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script> <!-- Need this to render LaTeX -->
+
+<script src="/javascript/global.js"></script> <!-- Main page code -->
+
 </body>
 </html>
