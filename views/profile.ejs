@@ -27,9 +27,27 @@
                     <p>
                         <strong>id</strong>: <%= user._id %><br>
                         <strong>email</strong>: <%= user.local.email %><br>
-                        <strong>password</strong>: <%= user.local.password %>
+                        <strong>password</strong>: <%= user.local.password %><br>
+                        <strong>fullname</strong>: <%= user.local.fullname %>
                     </p>
 
+            </div>
+        </div>
+
+        <!-- UPDATE FORM -->
+        <div class="col-sm-6">
+            <div class="well">
+                <h3>Update Information</h3>
+
+                <form action="/profile" method="post">
+                    <input type="password" name="oldpassword" placeholder="Confirm old password" /><br />
+                    <input type="password" name="newpassword" placeholder="New password" /><br />
+                    <input type="password" name="newpassword2" placeholder="Confirm new password" /><br />
+                    <input type="text" name="email" placeholder="Email" /><br />
+                    <input type="text" name="fullname" placeholder="Full name" /><br />
+                    <br />
+                    <input type="submit" value="Submit" />
+                </form>
             </div>
         </div>
 
