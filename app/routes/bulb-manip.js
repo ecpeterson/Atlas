@@ -82,7 +82,8 @@ module.exports = function(app) {
 			if (newBulb.outgoingNodes) {
 				var validatedOutgoingNodes = newBulb.outgoingNodes.filter(
 					function(element) {
-						Bulb.findOne({ _id : element }, function(err, bulb) {
+						var ret;
+						ret = Bulb.findOne({ _id : element }, function(err, bulb) {
 							if (err) {
 								// is this too lazy? if we, like, fail to connect
 								// to the database, we don't want to just delete
@@ -93,6 +94,8 @@ module.exports = function(app) {
 								return bulb.hasReadAccess(req.user._id);
 							}
 						});
+
+						return ret;
 					});
 				bulb.outgoingNodes = validatedOutgoingNodes;
 			}

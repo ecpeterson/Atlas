@@ -1,7 +1,7 @@
 // Settings ====================================================================
 
-var width = 900,
-    height = 900;
+var width = 400,
+    height = 400;
 
 // Globals =====================================================================
 
@@ -84,14 +84,22 @@ $(document).ready(function() {
 
     // when a bulb name is clicked, call the JS routine below
     $('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb);
+    $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkShowBulb', selectBulb);
 
-    // when a 'delete' button is clicked, call the JS routine below
+    // when the 'delete' button is clicked, call the JS routine below
     //
     // remark: you must hook jQuery on a static page element, like the tbody
     // element, and then key on what you actually want in the second parameter.
     $('#bulbInfo').on('click', 'a.linkDeleteBulb', deleteBulb);
 
+    // when the 'update' button is clicked, call the JS routine below
     $('#bulbInfo').on('click', 'a.linkUpdateBulb', updateBulb);
+
+    // when the [+] button is clicked, add a link
+    $('a.bulbInfoAddOutgoingRef').on('click', '', addLink);
+
+    // when the [-] button is clicked, remove the link
+    $('#bulbInfoOutgoingSelector select').on('click', 'option', removeLink);
 });
 
 // Utility functions ===========================================================
@@ -158,7 +166,9 @@ function restartGraph() {
             .append('g')
                 .attr('class', 'node')
                 .on('click', function () {
-                    // TODO: send a selectNode() call.
+                    d = d3.select(this).node();
+                    console.log(JSON.stringify(d));
+                    selectBulb(null, d._id);
                     return;
                 })
                 // .on('dblclick', function () { return; })
@@ -188,21 +198,26 @@ function restartGraph() {
 // generates the HTML displaying bulb list
 function populateTables() {
 	// this is the string we're going to insert into the document later
-	var listContent = '';
+	var liListContent = '';
+    var selectListContent = '';
 
 	// jQuery AJAX call for JSON
 	$.getJSON('/visiblebulbs', function(data) {
 		// for each item in our JSON, add a table row to the content structure
 		$.each(data, function() {
-            listContent += '<li>';
-            listContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
+            liListContent += '<li>';
+            liListContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
                            '" title="Show details">' + this.title + '</a> ';
-            listContent += '</li>';
+            liListContent += '</li>';
+
+            selectListContent += '<option value="' + this._id + '">' +
+                                 this.title + '</option>';
 		});
 
 		// inject this content string into our existing HTML table.
         // NOTE: this overwrites whatever was there before.
-		$('#bulbList ul').html(listContent);
+		$('#bulbList ul').html(liListContent);
+        $('#bulbInfoOutgoingSelector select').html(selectListContent);
 	});
 };
 
@@ -232,6 +247,10 @@ function selectBulb(event, bulbId) {
     // if we're passed a bulbId, use it. o/w, try to extract from the DOM event
     if (!bulbId)
         bulbId = $(this).attr('rel');
+
+    // if we're not actually selecting a new node, then just pass.
+    if (bulbId == activeBulbId)
+        return;
 
     // if the new bulb is in the list of outgoing bulbs for the current bulb...
     if (activeBulb && activeBulb.outgoingNodes &&
@@ -319,6 +338,9 @@ function selectBulb(event, bulbId) {
                     // have to do it here.
 
                     restartGraph();
+
+                    // TODO: finally, you should place some of these nodes in
+                    // fixed positions.
                 }
             );
         }
@@ -328,7 +350,20 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
-        $('#bulbInfoOutgoingNodes').text(response.outgoingNodes);
+        $.each(response.outgoingNodes, function() {
+            $.getJSON('/bulb/' + this, function(listBulb) {
+                var listContent = '';
+                listContent += '<li>';
+                listContent += '<a href="#" class="linkShowBulb" rel="' +
+                               this._id + '" title="Show details">' +
+                               listBulb.title + '</a> ';
+                listContent += '<a href="#" class="linkDeleteLink" rel="' +
+                               listBulb._id +
+                               '" title="Delete Link"> [ - ] </a> ';
+                listContent += '</li>';
+                $('#bulbInfoOutgoingNodes ul').append(listContent);
+            });
+        });
         $('#bulbInfoModificationTime').text(response.modificationTime);
         if (response.parents) {
             $('#bulbInfoParentsWorkspaceId').text(response.parents.workspaceId);
@@ -338,6 +373,13 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoShares').text(response.shares);
         $('#bulbInfoText').val(response.text);
         $('#bulbInfoRenderedText').text(response.text);
+        $.getJSON('/user/' + response.ownerId, function (userinfo) {
+            if (userinfo.msg) {
+                alert('Error: ' + userinfo.msg);
+                return;
+            }
+            $('#bulbInfoOwner').text(userinfo.name);
+        });
 
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
     });
@@ -375,9 +417,10 @@ function deleteBulb(event) {
 
 // updates a bulb
 function updateBulb(event) {
-    event.preventDefault();
+    if (event)
+        event.preventDefault();
 
-    if (activeBulbId == '')
+    if (!activeBulbId)
         return;
 
     var freshBulb = activeBulb;
@@ -395,6 +438,31 @@ function updateBulb(event) {
             alert('Error: ' + response.msg);
 
         populateTables();
-        showBulbInfo(event, activeBulbId);
+        selectBulb(event, activeBulbId);
     });
 };
+
+function addLink(event) {
+    if (event)
+        event.preventDefault();
+
+    var selector = $('#bulbInfoOutgoingSelector select');
+
+    if (!activeBulbId || !selector.val())
+        return;
+
+    // validation:
+    if ((selector.val() == activeBulbId) || // can't select ourselves
+        (activeBulb.outgoingNodes.indexOf(selector.val()) > -1)) // can't repeat
+        return;
+
+    // add this to our list of links
+    activeBulb.outgoingNodes.push(selector.val());
+
+    // push the update to the remote server
+    updateBulb(null);
+}
+
+function removeLink(event) {
+    return;
+}
