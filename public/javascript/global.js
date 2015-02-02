@@ -368,8 +368,6 @@ function selectBulb(event, bulbId) {
             $('#bulbInfoParentsOriginalId').text(response.parents.originalId);
         }
         $('#bulbInfoShares').text(response.shares);
-        $('#bulbInfoText').val(response.text);
-        $('#bulbInfoRenderedText').text(response.text);
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
             if (userinfo.msg) {
                 alert('Error: ' + userinfo.msg);
@@ -379,7 +377,12 @@ function selectBulb(event, bulbId) {
                 userinfo.email + '">' + userinfo.email + '</a>)');
         });
 
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
+        // to save space, we moved the text part into a different call
+        $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
+            $('#bulbInfoText').val(response.text);
+            $('#bulbInfoRenderedText').text(response.text);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
+        });
     });
 }
 
