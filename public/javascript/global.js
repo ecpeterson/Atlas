@@ -375,7 +375,8 @@ function selectBulb(event, bulbId) {
                 alert('Error: ' + userinfo.msg);
                 return;
             }
-            $('#bulbInfoOwner').text(userinfo.name);
+            $('#bulbInfoOwner').html(userinfo.name + ' (<a href="mailto:' +
+                userinfo.email + '">' + userinfo.email + '</a>)');
         });
 
         MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
