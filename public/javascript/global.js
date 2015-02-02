@@ -100,6 +100,9 @@ $(document).ready(function() {
 
     // when the [-] button is clicked, remove the link
     $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkDeleteLink', removeLink);
+
+    // when new text is entered, make mathjax rerender it.
+    $('textarea#bulbInfoText').on('keyup blur', rerenderBulbText);
 });
 
 // Utility functions ===========================================================
@@ -191,6 +194,24 @@ function restartGraph() {
             .remove();
 
     force.start();
+}
+
+var rerenderBulbText;
+{
+    var textSource = $('#bulbInfoText');
+    var textTarget = $('#bulbInfoRenderedText');
+
+    rerenderBulbText = function () {
+        var content = textSource.val();
+
+        content = '<p>' + content.replace(/\n([ \t]*\n)+/g, '</p><p>')
+                 .replace('\n', '<br />') + '</p>';
+
+        textTarget.html(content);
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, "bulbInfoRenderedText"]);
+
+        return;
+    }
 }
 
 // User-triggerable functions ==================================================
@@ -380,8 +401,7 @@ function selectBulb(event, bulbId) {
         // to save space, we moved the text part into a different call
         $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
             $('#bulbInfoText').val(response.text);
-            $('#bulbInfoRenderedText').text(response.text);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"bulbInfoRenderedText"]);
+            rerenderBulbText();
         });
     });
 }
