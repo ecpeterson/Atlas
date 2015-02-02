@@ -83,3 +83,9 @@ Possibly this will be helpful for organizing the graph drawing code:
     http://stackoverflow.com/questions/10887027/how-do-i-set-the-focal-node-in-a-d3-js-force-directed-graph?lq=1 ,
 
 but using it will require not using the built-in d3.layout.force thing. You'll have to lay things out a little manually.
+
+~          ~           ~
+
+This seems useful for performance:
+
+    http://mongoosejs.com/docs/api.html#query_Query-lean .

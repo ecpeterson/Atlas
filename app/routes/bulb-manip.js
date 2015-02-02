@@ -6,7 +6,7 @@ var Bulb = require('../models/bulb.js');
 module.exports = function(app) {
 	// REQUEST INDIVIDUAL BULB DATA ============================================
 	app.get('/bulb/:id', app.isLoggedIn, function(req, res) {
-		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
 			if (err)
 				res.send({ msg : err });
@@ -24,7 +24,7 @@ module.exports = function(app) {
 
 	// REQUEST INDIVIDUAL BULB WITH TEXT =======================================
 	app.get('/bulb/:id/text', app.isLoggedIn, function(req, res) {
-		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
 			if (err)
 				res.send({ msg : err });
@@ -38,9 +38,49 @@ module.exports = function(app) {
 		});
 	});
 
+	// REQUEST INDIVIDUAL BULB'S CONTAINING WORKSPACE ==========================
+
+	app.get('/bulb/:id/workspace', app.isLoggedIn, function(req, res) {
+		Bulb.findById(req.params.id, function(err, bulb) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			res.send(bulb.findParentWorkspace(req.user._id));
+			return;
+		});
+	});
+
+	// REQUEST CONTAINER BULB'S IMMEDIATE CHILDREN =============================
+
+	app.get('/bulb/:id/children', app.isLoggedIn, function(req, res) {
+		Bulb.findById(req.params.id, function(err, bulb) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			if (!bulb.hasReadAccess(req.user._id)) {
+				res.send({ msg : 'Bad read access to ' + req.params.id + '.'});
+				return;
+			}
+
+			bulb.find({ parentContainer : req.params.id }, function(err, bulbs) {
+				if (err) {
+					res.send({ msg : err });
+					return;
+				}
+
+				res.send(bulbs);
+				return;
+			});
+		});
+	});
+
 	// DELETE INDIVIDUAL BULB ==================================================
 	app.delete('/bulb/:id', app.isLoggedIn, function(req, res) {
-		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
 			if (err)
 				res.send({ msg : err });
@@ -58,7 +98,7 @@ module.exports = function(app) {
 
 	// UPDATE INDIVIDUAL BULB ==================================================
 	app.put('/bulb/:id', app.isLoggedIn, function(req, res) {
-		Bulb.findOne({ _id : req.params.id }, function(err, bulb) {
+		Bulb.findById(req.params.id, function(err, bulb) {
 			if (err)
 				res.send({ msg : err });
 
@@ -103,7 +143,9 @@ module.exports = function(app) {
 			}
 
 			// TODO: the node's parents also need to be validated
-			bulb.parents = newBulb.parents;
+			bulb.parentContainer = newBulb.parentContainer;
+			bulb.parentWorkspace = newBulb.parentWorkspace;
+			bulb.parentOriginal = newBulb.parentOriginal;
 
 			bulb.save(function(err) {
 				if (err)
@@ -168,7 +210,7 @@ module.exports = function(app) {
 		}
 
 		req.body.ids.forEach(function (bulbId) {
-			Bulb.findOne({ _id : bulbId }, function(err, bulb) {
+			Bulb.findById(bulbId, function(err, bulb) {
 				// check for errors: can't find the bulb or can't read it
 				if (err) {
 					resultList.push({ _id : bulbId,
