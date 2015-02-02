@@ -99,7 +99,7 @@ $(document).ready(function() {
     $('a.bulbInfoAddOutgoingRef').on('click', '', addLink);
 
     // when the [-] button is clicked, remove the link
-    $('#bulbInfoOutgoingSelector select').on('click', 'option', removeLink);
+    $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkDeleteLink', removeLink);
 });
 
 // Utility functions ===========================================================
@@ -248,10 +248,6 @@ function selectBulb(event, bulbId) {
     if (!bulbId)
         bulbId = $(this).attr('rel');
 
-    // if we're not actually selecting a new node, then just pass.
-    if (bulbId == activeBulbId)
-        return;
-
     // if the new bulb is in the list of outgoing bulbs for the current bulb...
     if (activeBulb && activeBulb.outgoingNodes &&
         activeBulb.outgoingNodes.indexOf(bulbId) > -1)
@@ -350,6 +346,7 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
+        $('#bulbInfoOutgoingNodes ul').html('');
         $.each(response.outgoingNodes, function() {
             $.getJSON('/bulb/' + this, function(listBulb) {
                 var listContent = '';
@@ -464,5 +461,14 @@ function addLink(event) {
 }
 
 function removeLink(event) {
-    return;
+    if (event)
+        event.preventDefault();
+
+    targetId = $(this).attr('rel');
+
+    activeBulb.outgoingNodes = activeBulb.outgoingNodes.filter(function (b) {
+        return (b != targetId);
+    });
+
+    updateBulb(null);
 }

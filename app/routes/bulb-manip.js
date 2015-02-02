@@ -98,6 +98,8 @@ module.exports = function(app) {
 						return ret;
 					});
 				bulb.outgoingNodes = validatedOutgoingNodes;
+			} else {
+				bulb.outgoingNodes = [];
 			}
 
 			// TODO: the node's parents also need to be validated
