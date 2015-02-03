@@ -38,16 +38,16 @@ module.exports = function(app) {
 		});
 	});
 
-	// REQUEST INDIVIDUAL BULB'S CONTAINING WORKSPACE ==========================
+	// REQUEST INDIVIDUAL BULB'S PATH ==========================================
 
-	app.get('/bulb/:id/workspace', app.isLoggedIn, function(req, res) {
+	app.get('/bulb/:id/path', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			if (err) {
 				res.send({ msg : err });
 				return;
 			}
 
-			res.send(bulb.findParentWorkspace(req.user._id));
+			res.send(bulb.findPath(req.user._id));
 			return;
 		});
 	});
@@ -164,9 +164,12 @@ module.exports = function(app) {
 		// 3) nodes inside of workspace nodes which their names are attached to.
 		// 
 		// for now, i'm just going to return a list of nodes they actually own.
-		Bulb.find({ ownerId : req.user._id }, function(err, bulbs) {
+		var testFn = "this.hasReadAccess(" + req.user._id + ")";
+
+		Bulb.find( { $where: testFn }, function (err, bulbs) {
 			// check for errors
 			if (err) {
+				console.log('error: ' + err);
 				res.send({ msg : err });
 				return;
 			}

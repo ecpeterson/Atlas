@@ -34,7 +34,7 @@ bulbSchema.methods.hasWriteAccess = function(user_id) {
 			false);
 };
 
-bulbSchema.methods.findParentWorkspace = function(user_id) {
+bulbSchema.methods.findPath = function(user_id) {
 	var Bulb = this.model('Bulb');
 
 	var aux = function (bulb) {
@@ -44,11 +44,12 @@ bulbSchema.methods.findParentWorkspace = function(user_id) {
 
 		// if we live in a workspace, announce it
 		if (bulb.parentWorkspace)
-			return { workspace : bulb.parentWorkspace };
+			return { workspace : bulb.parentWorkspace,
+					 path : [bulb._id] };
 
 		// if we live in a container, recurse on it
-		if (bulb.parentContainer)
-			return Bulb.findById(bulb.parentContainer,
+		if (bulb.parentContainer) {
+			var result = Bulb.findById(bulb.parentContainer,
 				function(err, containerBulb) {
 					if (err)
 						return { msg : err };
@@ -56,8 +57,14 @@ bulbSchema.methods.findParentWorkspace = function(user_id) {
 					aux(containerBulb);
 				});
 
+			result.path.push(bulb._id);
+
+			return result;
+		}
+
 		// otherwise, we're out of options.
-		return { workspace : '' };
+		return { workspace : '',
+				 path : [bulb._id] };
 	};
 
 	return aux(this);
