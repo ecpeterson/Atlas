@@ -11,33 +11,70 @@
     </style>
 </head>
 <body>
-<div class="container">
+<div class="container-fluid" style="padding:20px;">
 
-    <div class="jumbotron text-center">
+    <div class="">
+        <div class="text-center jumbotron">
         <h1><span class="fa fa-lock"></span> Atlas</h1>
-
-        <p>Registered user functions:</p>
-
-        <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span> Logout</a>
-        <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
-
-        <div id="divSVG">
-            <p>Bulb Graph:</p>
         </div>
+
+        <p>Registered user functions:
+
+            <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span> Logout</a>
+            <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
+        </p>
 
         <p>Data in highlighted node:</p>
         <div id="bulbInfo">
             <fieldset>
+                <div class="row">
+                <div class="col-md-5">
+                <table class="table-striped">
+                <tr>
+                <td>
+                <strong>Title:</strong>
+                </td>
+                <td>
+                <input id="bulbInfoTitle" type="text" placeholder="Title" />
+                </td>
+                </tr>
+                <tr>
+                <td>
+                <strong>Resolved:</strong>
+                </td>
+                <td>
+                <input id="bulbInfoResolved" type="checkbox" />
+                </td>
+                </tr>
+                <tr>
+                <td>
+                <strong>Modification Time:</strong>
+                </td>
+                <td>
+                <span id="bulbInfoModificationTime"></span>
+                </td>
+                </tr>
+                <tr>
+                <td>
                 <strong>Id:</strong>
+                </td>
+                <td>
                 <span id="bulbInfoId"></span>
-                <br />
-                <strong>Type:</strong>
-                <span id="bulbInfoType"></span>
-                <br />
+                </td>
+                </tr>
+                <tr>
+                <td>
                 <strong>Owner:</strong>
+                </td>
+                <td>
                 <span id="bulbInfoOwner"></span>
-                <br />
+                </td>
+                </tr>
+                <tr>
+                <td>
                 <strong>Outgoing Nodes:</strong>
+                </td>
+                <td>
                 <span id="bulbInfoOutgoingSelector">
                     <select name="toID">
                         <!-- <option value="refID">title</option> -->
@@ -45,38 +82,39 @@
                 </span>
                 <a href="#" class="bulbInfoAddOutgoingRef">[ + ]</a>
                 <span id="bulbInfoOutgoingNodes"><ul></ul></span>
-                <br />
-                <strong>Modification Time:</strong>
-                <span id="bulbInfoModificationTime"></span>
-                <br />
-                <strong>Title:</strong>
-                <input id="bulbInfoTitle" type="text" placeholder="Title" />
-                <br />
-                <strong>Resolved:</strong>
-                <input id="bulbInfoResolved" type="checkbox" />
-                <br />
-                <strong>Parents (Workspace):</strong>
-                <span id="bulbInfoParentsWorkspaceId"></span>
-                <br />
-                <strong>Parents (Container):</strong>
-                <span id="bulbInfoParentsContainerId"></span>
-                <br />
-                <strong>Parents (Original):</strong>
-                <span id="bulbInfoParentsOriginalId"></span>
-                <br />
+                </td>
+                </tr>
+                <tr>
+                <td>
+                <strong>Parents:</strong>
+                </td>
+                <td>
+                <strong>(Workspace)</strong> <span id="bulbInfoParentsWorkspaceId"></span> <br />
+                <strong>(Container)</strong> <span id="bulbInfoParentsContainerId"></span> <br />
+                <strong>(Original)</strong> <span id="bulbInfoParentsOriginalId"></span>
+                </td>
+                </tr>
+                <tr>
+                <td>
                 <strong>Shares:</strong>
+                </td>
+                <td>
                 <span id="bulbInfoShares"></span>
+                </td>
+                </tr>
+                </table>
+                <textarea id="bulbInfoText" style="width:100%" rows=20></textarea>
                 <br />
-                <textarea id="bulbInfoText"></textarea>
-                <br />
-                <div id="bulbInfoRenderedText"></div>
-                <br />
-                <a href="#" class="btn btn-default linkUpdateBulb">Update Active Bulb</a>
+                <a href="#" class="btn btn-default linkUpdateBulb">Save Active Bulb</a>
                 <a href="#" class="btn btn-default linkDeleteBulb">Delete Active Bulb</a>
+                </div>
+                <div class="col-md-7">
+                <div id="bulbInfoRenderedText"></div>
+                </div></div>
             </fieldset>
         </div>
 
-        <p>Available nodes:</p>
+        <p>Navigate to available nodes:</p>
         <div id="bulbList">
             <ul>
                 <!-- This will get populated. -->
@@ -85,6 +123,10 @@
         <fieldset>
             <button id="btnNewBulb">New Bulb</button>
         </fieldset>
+    </div>
+
+    <div id="divSVG">
+        <p>Bulb Graph:</p>
     </div>
 
 </div>
