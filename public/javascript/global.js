@@ -69,7 +69,7 @@ $(document).ready(function() {
     populateTables();
 
     // we just got the bulb data; oh well, get it again.
-    $.getJSON('/visiblebulbs', function(data) {
+    $.getJSON('/toplevel', function(data) {
         if (data.length > 0) {
             // tell D3 to start running the simulation with the blank tables
             selectBulb(null, data[0]._id);
@@ -234,7 +234,7 @@ function populateTables() {
     var selectListContent = '';
 
 	// jQuery AJAX call for JSON
-	$.getJSON('/visiblebulbs', function(data) {
+	$.getJSON('/toplevel', function(data) {
 		// for each item in our JSON, add a table row to the content structure
 		$.each(data, function() {
             liListContent += '<li>';
@@ -466,8 +466,11 @@ function updateBulb(event) {
         data : freshBulb,
         dataType : 'JSON'
     }).done(function(response) {
-        if (response.msg)
+        if (response.msg) {
             alert('Error: ' + response.msg);
+            // don't throw out the user's changes if we failed to commit.
+            return;
+        }
 
         populateTables();
         selectBulb(event, activeBulbId);

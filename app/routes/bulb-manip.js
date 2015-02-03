@@ -94,6 +94,9 @@ module.exports = function(app) {
 				res.send({ msg : err });
 			});
 		});
+
+		// XXX: if this node had children, they all need to be moved into the
+		// parent container.
 	});
 
 	// UPDATE INDIVIDUAL BULB ==================================================
@@ -108,6 +111,11 @@ module.exports = function(app) {
 			}
 
 			var newBulb = req.body;
+
+			if (Date(bulb.modificationTime) > Date(newBulb.modificationTime)) {
+				res.send({ msg : 'Bulb has changed since load.' });
+				return;
+			}
 
 			// copy over the non-internal bulb attributes and save the new bulb
 			bulb.title = newBulb.title;
@@ -156,23 +164,27 @@ module.exports = function(app) {
 		});
 	});
 
-	// REQUEST BULBS VISIBLE TO USER ===========================================
-	app.get('/visiblebulbs', app.isLoggedIn, function(req, res) {
-		// there are three kinds of nodes visible to the user:
-		// 1) nodes they actually own,
-		// 2) workspace nodes which their names are attached to,
-		// 3) nodes inside of workspace nodes which their names are attached to.
-		// 
-		// for now, i'm just going to return a list of nodes they actually own.
-		var testFn = "this.hasReadAccess(" + req.user._id + ")";
-
-		Bulb.find( { $where: testFn }, function (err, bulbs) {
+	// REQUEST BULBS OWNED BY USER =============================================
+	// there are three kinds of nodes visible to the user:
+	// 1) nodes they actually own,
+	// 2) workspace nodes which their names are attached to,
+	// 3) nodes inside of workspace nodes which their names are attached to.
+	// 
+	// for now, i'm just going to return a list of nodes they actually own.
+	app.get('/toplevel', app.isLoggedIn, function(req, res) {
+		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
 			// check for errors
 			if (err) {
 				console.log('error: ' + err);
 				res.send({ msg : err });
 				return;
 			}
+
+			// remove all the bulbs that live in containers or workspaces.
+			bulbs = bulbs.filter(function (bulb) {
+				return (!bulb.parentContainer &&
+						!bulb.parentWorkspace);
+			});
 
 			// strip out the text from the bulbs. 'forEach' works over 'map'
 			// here because bulbs are *persistent objects* with mutable fields.
