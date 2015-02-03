@@ -481,6 +481,8 @@ function addLink(event) {
     if (event)
         event.preventDefault();
 
+    launchPathSelector(event.target, function (path) { return; });
+
     var selector = $('#bulbInfoOutgoingSelector select');
 
     if (!activeBulbId || !selector.val())

@@ -101,3 +101,9 @@ which attaches itself to the DOMElement and displays a box like
     [ working path, .., n1, ..., nm ],
 
 all clickable, which select the current path, move to the previous path, and select (or move to, if a container) one of the toplevel nodes n1, ..., nm respectively, eventually calling the callback function with the selected path (à la /bulb/:id/path) on finish, to be used to update whatever needs updating.
+
+You might look at
+
+    http://hallofhavoc.com/2013/05/how-to-create-an-overlay-popup-box-using-html-css-and-jquery/
+
+for how to set up one of these overlay <div>s.
