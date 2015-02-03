@@ -102,7 +102,11 @@ $(document).ready(function() {
     $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkDeleteLink', removeLink);
 
     // when new text is entered, make mathjax rerender it.
-    $('textarea#bulbInfoText').on('keyup blur', rerenderBulbText);
+    $('textarea#bulbInfoText').on('keyup blur',
+        function () { bulbTextNeedsRerender = true; });
+
+    // call MathJaX periodically to render the bulb text
+    setInterval(rerenderBulbText, 3000);
 });
 
 // Utility functions ===========================================================
@@ -196,12 +200,19 @@ function restartGraph() {
     force.start();
 }
 
+var bulbTextNeedsRerender = false;
 var rerenderBulbText;
 {
     var textSource = $('#bulbInfoText');
     var textTarget = $('#bulbInfoRenderedText');
 
     rerenderBulbText = function () {
+        if (!bulbTextNeedsRerender ||
+            MathJax.Hub.Queue.pending)
+            return;
+
+        bulbTextNeedsRerender = false;
+
         var content = textSource.val();
 
         content = '<p>' + content.replace(/\n([ \t]*\n)+/g, '</p><p>')
@@ -401,7 +412,7 @@ function selectBulb(event, bulbId) {
         // to save space, we moved the text part into a different call
         $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
             $('#bulbInfoText').val(response.text);
-            rerenderBulbText();
+            bulbTextNeedsRerender = true;
         });
     });
 }
