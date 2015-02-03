@@ -89,3 +89,15 @@ but using it will require not using the built-in d3.layout.force thing. You'll h
 This seems useful for performance:
 
     http://mongoosejs.com/docs/api.html#query_Query-lean .
+
+~          ~           ~
+
+We should provide some kind of popover interim path selector.  I'm envisioning a popover div, launched by
+
+    launchPathSelector(DOMElement, function callback(path) { ... })
+
+which attaches itself to the DOMElement and displays a box like
+
+    [ working path, .., n1, ..., nm ],
+
+all clickable, which select the current path, move to the previous path, and select (or move to, if a container) one of the toplevel nodes n1, ..., nm respectively, eventually calling the callback function with the selected path (à la /bulb/:id/path) on finish, to be used to update whatever needs updating.
