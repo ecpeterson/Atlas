@@ -1,3 +1,11 @@
+
+// Exposed variables ===========================================================
+
+var launchPathSelector;         // function(DOMElement, callback)
+var launchWorkspaceSelector;    // function(DOMElement, callback)
+
+{ // INTERNAL PART OF THE FILE
+
 // Settings ====================================================================
 
 
@@ -222,13 +230,13 @@ function renderPopover() {
 }
 
 //function launchPathSelector(DOMElement, function callback(path) { ... })
-function launchPathSelector(DOMElement, callback) {
+launchPathSelector = function (DOMElement, callback) {
     popoverMode = "PATH";
 
     launchPopover(DOMElement, callback);
 }
 
-function launchWorkspaceSelector(DOMElement, callback) {
+launchWorkspaceSelector = function (DOMElement, callback) {
     popoverMode = "WORKSPACE";
 
     launchPopover(DOMElement, callback);
@@ -252,4 +260,6 @@ function launchPopover(DOMElement, callback) {
     renderPopover();
 
     popup.show();
+}
+
 }
