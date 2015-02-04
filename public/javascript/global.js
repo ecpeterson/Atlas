@@ -384,7 +384,7 @@ function selectBulb(event, bulbId) {
                 var listContent = '';
                 listContent += '<li>';
                 listContent += '<a href="#" class="linkShowBulb" rel="' +
-                               this._id + '" title="Show details">' +
+                               listBulb._id + '" title="Show details">' +
                                listBulb.title + '</a> ';
                 listContent += '<a href="#" class="linkDeleteLink" rel="' +
                                listBulb._id +
@@ -413,6 +413,7 @@ function selectBulb(event, bulbId) {
         $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
             $('#bulbInfoText').val(response.text);
             bulbTextNeedsRerender = true;
+            rerenderBulbText(); // cause an immediate re-render.
         });
     });
 }

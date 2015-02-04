@@ -6,6 +6,7 @@
 var popup;
 var popupText;
 var holdCallback;
+var backgroundPath;
 
 // DOM Ready ===================================================================
 
@@ -26,7 +27,38 @@ $(document).ready(function() {
 
     popup.append('<button class="path-popup-close-button">Close</button>');
     $('button.path-popup-close-button').click(closeClick);
+
+    // set up click hooks for the to-be-created popover links
+    $('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb);
+    $('div.path-popup-body').on('click', 'ul li a.linkPopoverSelectWorkspace',
+                                popoverSelectWorkspace);
+    $('div.path-popup-body').on('click', 'ul li a.linkPopoverSelectBulb',
+                                popoverSelectBulb);
+    $('div.path-popup-body').on('click', 'strong a.linkPopoverChooseThis',
+                                popoverChooseThis);
+    $('div.path-popup-body').on('click', 'ul li a.linkPopoverDeselect',
+                                popoverDeselect);
 });
+
+function popoverSelectWorkspace(event) {
+    if (event)
+        event.preventDefault();
+}
+
+function popoverSelectBulb(event) {
+    if (event)
+        event.preventDefault();
+}
+
+function popoverChooseThis(event) {
+    if (event)
+        event.preventDefault();
+}
+
+function popoverDeselect(event) {
+    if (event)
+        event.preventDefault();
+}
 
 function closeClick(event) {
     if (event)
@@ -34,7 +66,112 @@ function closeClick(event) {
 
     popup.hide();
 
+    // TODO: pass the path object back to the callback function
     holdCallback(null);
+}
+
+// gets called whenever the data in the popover needs to be updated
+function renderPopover() {
+    var renderString = '';
+
+    // there are three situations we could be in.
+
+    if (!backgroundPath.path.length &&
+        !backgroundPath.workspace) {
+        // WE'RE NOT IN A WORKSPACE OR A CONTAINER: WE'RE AT THE TOPMOST LEVEL.
+
+        // render the header: just a 'toplevel' banner
+        renderString += '<strong>Toplevel</strong>';
+
+        // render the node selection links at this location
+        $.getJSON('/toplevel', function(bulbData) {
+            $.getJSON('/workspaces', function(workspaceData) {
+                renderString += '<ul>';
+
+                // don't render the up-level link since we're at the top level
+
+                $.each(workspaceData, function (workspace) {
+                    renderString += '<li><a href="#" ' +
+                                    'class="linkPopoverSelectWorkspace" rel="' +
+                                    this._id + '">' + this.title +
+                                    '</a></li>';
+                });
+
+                $.each(bulbData, function (bulb) {
+                    renderString += '<li><a href="#" ' +
+                                    'class="linkPopoverSelectBulb" rel="' +
+                                    this._id + '">' + this.title +
+                                    '</a></li>';
+                });
+
+                renderString += '</ul>';
+                
+                // overwrite whatever HTML used to be there
+                popupText.html(renderString);
+            });
+        });
+
+    } else if (!backgroundPath.path.length &&
+               backgroundPath.workspace) {
+        // WE'RE IN A WORKSPACE BUT HAVEN'T YET GONE INSIDE A CONTAINER
+
+        $.getJSON('/workspace/' + backgroundPath.workspace,
+                  function(workspace) {
+            $.getJSON('/workspace/' + backgroundPath.workspace + '/children',
+                      function(bulbs) {
+                // render the header: name of the selected workspace
+                renderString += '<strong><a href="#" ' +
+                                'class="linkPopoverChooseThis">' +
+                                workspace.title + '</a></strong>';
+
+                // render the up-directory link
+                renderString += '<ul>';
+                renderString += '<li><a href="#" class="linkPopoverDeselect" ' +
+                                '>..</a></li>';
+
+                // render the toplevel nodes at this location
+                $.each(bulbs, function (bulb) {
+                    renderString += '<li><a href="#" ' +
+                                    'class="linkPopoverSelectBulb" rel="' +
+                                    this._id + '">' + this.title + '</a></li>';
+                });
+
+                renderString += '</ul>';
+
+                popupText.html(renderString);
+            });
+        });
+
+    } else {
+        // WE'RE IN A CONTAINER.
+
+        var bulbId = backgroundPath.path[backgroundPath.path.length - 1];
+
+        $.getJSON('/bulb/' + bulbId, function(bulb) {
+            $.getJSON('/bulb/' + bulbId + '/children', function (bulbs) {
+                // render the header: name of the current node
+                renderString += '<strong><a href="#" ' +
+                                'class="linkPopoverChooseThis">' +
+                                bulb.title + '</a></strong>';
+
+                // render the up-directory link
+                renderString += '<ul>';
+                renderString += '<li><a href="#" class="linkPopoverDeselect" ' +
+                                '>..</a></li>';
+
+                // render the toplevel nodes at this location
+                $.each(bulbs, function (bulb) {
+                    renderString += '<li><a href="#" ' +
+                                    'class="linkPopoverSelectBulb" rel="' +
+                                    this._id + '">' + this.title + '</a></li>';
+                });
+
+                renderString += '</ul>';
+
+                popupText.html(renderString);
+            });
+        });
+    }
 }
 
 //function launchPathSelector(DOMElement, function callback(path) { ... })
@@ -47,7 +184,13 @@ function launchPathSelector(DOMElement, callback) {
     offset.left += jQElement.width();
     popup.css(offset);
 
-    popupText.html('<p>Some dummy text for the popover.</p>');
+    // initialize the state of the popover:
+    // set the background path object to empty.
+    backgroundPath = {  workspace : '',
+                        path : [] };
+
+    // do the initial render
+    renderPopover();
 
     popup.show();
 }
