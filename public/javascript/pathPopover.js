@@ -7,6 +7,7 @@ var popup;
 var popupText;
 var holdCallback;
 var backgroundPath;
+var popoverMode = '';
 
 // DOM Ready ===================================================================
 
@@ -48,6 +49,7 @@ function popoverSelectWorkspace(event) {
 
     backgroundPath.workspace = workspaceId;
 
+    if (popoverMode == 'PATH') {
     $.getJSON('/workspace/' + workspaceId + '/children', function (bulbs) {
         if (bulbs.length > 0) {
             renderPopover();
@@ -55,6 +57,11 @@ function popoverSelectWorkspace(event) {
             popoverChooseThis(null);
         }
     });
+    } else if (popoverMode == 'WORKSPACE') {
+        popoverChooseThis(null);
+    } else {
+        console.log('Bad mode in popoverSelectWorkspace.');
+    }
 }
 
 function popoverSelectBulb(event) {
@@ -116,7 +123,10 @@ function renderPopover() {
         // WE'RE NOT IN A WORKSPACE OR A CONTAINER: WE'RE AT THE TOPMOST LEVEL.
 
         // render the header: just a 'toplevel' banner
-        renderString += '<strong>Toplevel</strong>';
+        if (popoverMode == 'WORKSPACE')
+            renderString += '<strong>Workspaces</strong>';
+        else
+            renderString += '<strong>Toplevel</strong>';
 
         // render the node selection links at this location
         $.getJSON('/toplevel', function(bulbData) {
@@ -132,12 +142,14 @@ function renderPopover() {
                                     '</a></li>';
                 });
 
+                if (popoverMode == 'PATH') {
                 $.each(bulbData, function (bulb) {
                     renderString += '<li><a href="#" ' +
                                     'class="linkPopoverSelectBulb" rel="' +
                                     this._id + '">' + this.title +
                                     '</a></li>';
                 });
+                }
 
                 renderString += '</ul>';
                 
@@ -211,6 +223,18 @@ function renderPopover() {
 
 //function launchPathSelector(DOMElement, function callback(path) { ... })
 function launchPathSelector(DOMElement, callback) {
+    popoverMode = "PATH";
+
+    launchPopover(DOMElement, callback);
+}
+
+function launchWorkspaceSelector(DOMElement, callback) {
+    popoverMode = "WORKSPACE";
+
+    launchPopover(DOMElement, callback);
+}
+
+function launchPopover(DOMElement, callback) {
     holdCallback = callback;
 
     // move the popup to the thing's location

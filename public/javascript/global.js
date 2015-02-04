@@ -83,8 +83,9 @@ $(document).ready(function() {
     $('#btnNewBulb').on('click', newBulb);
 
     // when a bulb name is clicked, call the JS routine below
-    $('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb);
+    //$('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb); // XXX: WTF
     $('#bulbInfoOutgoingNodes').on('click', 'li a.linkShowBulb', selectBulb);
+    $('#bulbInfoContainsNodes').on('click', 'li a.linkShowBulb', selectBulb);
 
     // when the 'delete' button is clicked, call the JS routine below
     //
@@ -100,6 +101,11 @@ $(document).ready(function() {
 
     // when the [-] button is clicked, remove the link
     $('#bulbInfoOutgoingNodes').on('click', 'li a.linkDeleteLink', removeLink);
+
+    // when the parent permalinks are clicked, let the client choose the parents
+    $('a.parentWorkspacePicker').on('click', pickParentWorkspace);
+    $('a.parentContainerPicker').on('click', pickParentContainer);
+    $('#bulbInfoParentsContainerId').on('click', 'a', selectBulb);
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -269,6 +275,10 @@ function newBulb(event) {
 };
 
 function selectBulb(event, bulbId) {
+    console.log('selectBulb called...');
+    if (event)
+        console.log('... by ' + event.target.nodeName);
+
     if (event)
         event.preventDefault();
 
@@ -374,6 +384,8 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
+
+        // for the outgoing nodes
         $('#bulbInfoOutgoingNodes').html('');
         $.each(response.outgoingNodes, function() {
             $.getJSON('/bulb/' + this, function(listBulb) {
@@ -387,17 +399,55 @@ function selectBulb(event, bulbId) {
                                '" title="Delete Link"> [ - ] </a> ';
                 listContent += '</li>';
                 $('#bulbInfoOutgoingNodes').append(listContent);
+
+                return;
+            });
+
+            return;
+        });
+
+        // for the contained nodes
+        $("#bulbInfoContainsNodes").html('');
+        $.getJSON('/bulb/' + activeBulbId + '/children', function (children) {
+            console.log('children: ' + children);
+            $.each(children, function (child) {
+                var listContent = '';
+                listContent += '<li>';
+                listContent += '<a href="#" class="linkShowBulb" rel="' +
+                               this._id + '" title="Show details">' +
+                               this.title + '</a>';
+                listContent += '</li>';
+                $("#bulbInfoContainsNodes").append(listContent);
             });
         });
+        
         var date = new Date(response.modificationTime);
         $('#bulbInfoModificationTime').html(date.toLocaleDateString() +
             ',<br />' + date.toLocaleTimeString());
-        $('#bulbInfoParentsWorkspaceId').text(response.parentWorkspace ?
-            response.parentWorkspace : 'None.' );
-        $('#bulbInfoParentsContainerId').text(response.parentContainer ?
-            response.parentContainer : 'None.');
+
+        if (response.parentWorkspace) {
+            $.getJSON('/workspace/' + response.parentWorkspace,
+                      function (workspace) {
+                $('#bulbInfoParentsWorkspaceId').text(workspace.title);
+            });
+        } else {
+            $('#bulbInfoParentsWorkspaceId').text('None.');
+        }
+
+        if (response.parentContainer) {
+            $.getJSON('/bulb/' + response.parentContainer,
+                      function (container) {
+                $('#bulbInfoParentsContainerId').html('<a href="#" rel="' +
+                    response.parentContainer + '" class="linkShowBulb">' +
+                    container.title + '</a>');
+            });
+        } else {
+            $('#bulbInfoParentsContainerId').text('None.');
+        }
+
         $('#bulbInfoParentsOriginalId').text(response.parentOriginal ?
             response.parentOriginal : 'None.');
+        
         $('#bulbInfoShares').text(response.shares);
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
             if (userinfo.msg) {
@@ -490,8 +540,9 @@ function addLink(event) {
         if (path.path.length == 0)
             return;
 
-        var targetId = path.path[path.path.length - 1];
+        var targetId = path.path.pop();
 
+        // XXX: shouldn't be able to link to nodes which have us in their path.
         if ((targetId == activeBulbId) || // can't select ourselves
             (activeBulb.outgoingNodes.indexOf(targetId) > -1)) // can't repeat
             return;
@@ -513,4 +564,38 @@ function removeLink(event) {
     });
 
     updateBulb(null);
+}
+
+function pickParentWorkspace(event) {
+    if (event)
+        event.preventDefault();
+
+    launchWorkspaceSelector(event.target, function (path) {
+        if (!activeBulb || !path)
+            return;
+
+        if (!path.workspace)
+            return;
+
+        activeBulb.parentWorkspace = path.workspace;
+
+        updateBulb(null);
+    });
+}
+
+function pickParentContainer(event) {
+    if (event)
+        event.preventDefault();
+
+    launchPathSelector(event.target, function (path) {
+        if (!activeBulb || !path)
+            return;
+
+        if (path.path.length == 0)
+            return;
+
+        activeBulb.parentContainer = path.path.pop();
+
+        updateBulb(null);
+    });
 }

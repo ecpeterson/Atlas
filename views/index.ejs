@@ -69,7 +69,19 @@
                 </tr>
                 <tr>
                 <td>
-                <strong>Outgoing Nodes:</strong>
+                <strong>Contains:</strong>
+                </td>
+                <td>
+                <ul>
+                    <span id="bulbInfoContainsNodes">
+                        <!-- This will get populated. -->
+                    </span>
+                </ul>
+                </td>
+                </tr>
+                <tr>
+                <td>
+                <strong>Links out to:</strong>
                 </td>
                 <td>
                 <ul>
@@ -85,8 +97,8 @@
                 <strong>Parents:</strong>
                 </td>
                 <td>
-                <strong>(Workspace)</strong> <span id="bulbInfoParentsWorkspaceId"></span> <br />
-                <strong>(Container)</strong> <span id="bulbInfoParentsContainerId"></span> <br />
+                <strong>(<a href="#" class="parentWorkspacePicker">Workspace</a>)</strong> <span id="bulbInfoParentsWorkspaceId"></span> <br />
+                <strong>(<a href="#" class="parentContainerPicker">Container</a>)</strong> <span id="bulbInfoParentsContainerId"></span> <br />
                 <strong>(Original)</strong> <span id="bulbInfoParentsOriginalId"></span>
                 </td>
                 </tr>
@@ -110,7 +122,7 @@
             </fieldset>
         </div>
 
-        <p>Navigate to available nodes:</p>
+        <p>Navigate to toplevel nodes:</p>
         <div id="bulbList">
             <ul>
                 <!-- This will get populated. -->
