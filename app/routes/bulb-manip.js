@@ -164,13 +164,7 @@ module.exports = function(app) {
 		});
 	});
 
-	// REQUEST BULBS OWNED BY USER =============================================
-	// there are three kinds of nodes visible to the user:
-	// 1) nodes they actually own,
-	// 2) workspace nodes which their names are attached to,
-	// 3) nodes inside of workspace nodes which their names are attached to.
-	// 
-	// for now, i'm just going to return a list of nodes they actually own.
+	// REQUEST UNHOUSED BULBS OWNED BY USER ====================================
 	app.get('/toplevel', app.isLoggedIn, function(req, res) {
 		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
 			// check for errors
