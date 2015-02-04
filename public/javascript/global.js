@@ -72,6 +72,7 @@ $(document).ready(function() {
     $.getJSON('/toplevel', function(data) {
         if (data.length > 0) {
             // tell D3 to start running the simulation with the blank tables
+            activeBulb = {}; activeBulbId = '';
             selectBulb(null, data[0]._id);
             restartGraph();
         }
@@ -86,6 +87,7 @@ $(document).ready(function() {
     //$('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb); // XXX: WTF
     $('#bulbInfoOutgoingNodes').on('click', 'li a.linkShowBulb', selectBulb);
     $('#bulbInfoContainsNodes').on('click', 'li a.linkShowBulb', selectBulb);
+    $('#historyDisplay').on('click', 'a.linkShowBulb', selectBulb);
 
     // when the 'delete' button is clicked, call the JS routine below
     //
@@ -106,6 +108,9 @@ $(document).ready(function() {
     $('a.parentWorkspacePicker').on('click', pickParentWorkspace);
     $('a.parentContainerPicker').on('click', pickParentContainer);
     $('#bulbInfoParentsContainerId').on('click', 'a', selectBulb);
+
+    // navigation clicker
+    $('a#navigateButton').on('click', navigateClicked);
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -235,24 +240,23 @@ var rerenderBulbText;
 
 // generates the HTML displaying bulb list
 function populateTables() {
-	// this is the string we're going to insert into the document later
-	var liListContent = '';
-    var selectListContent = '';
+	// // this is the string we're going to insert into the document later
+	// var liListContent = '';
 
-	// jQuery AJAX call for JSON
-	$.getJSON('/toplevel', function(data) {
-		// for each item in our JSON, add a table row to the content structure
-		$.each(data, function() {
-            liListContent += '<li>';
-            liListContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
-                           '" title="Show details">' + this.title + '</a> ';
-            liListContent += '</li>';
-		});
+	// // jQuery AJAX call for JSON
+	// $.getJSON('/toplevel', function(data) {
+	// 	// for each item in our JSON, add a table row to the content structure
+	// 	$.each(data, function() {
+ //            liListContent += '<li>';
+ //            liListContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
+ //                           '" title="Show details">' + this.title + '</a> ';
+ //            liListContent += '</li>';
+	// 	});
 
-		// inject this content string into our existing HTML table.
-        // NOTE: this overwrites whatever was there before.
-		$('#bulbList ul').html(liListContent);
-	});
+	// 	// inject this content string into our existing HTML table.
+ //        // NOTE: this overwrites whatever was there before.
+	// 	$('#bulbList ul').html(liListContent);
+	// });
 };
 
 // adds a new bulb to the database
@@ -274,11 +278,40 @@ function newBulb(event) {
     populateTables();
 };
 
-function selectBulb(event, bulbId) {
-    console.log('selectBulb called...');
-    if (event)
-        console.log('... by ' + event.target.nodeName);
+function drawHistory() {
+    // history is an array of bulbIds. need to grab their titles and assemble
+    // a string out of them.
+    var historyDisplay = $('#historyDisplay');
+    var historyCopy = history.slice();
+    var historyString = '';
 
+    var aux;
+
+    aux = function (array) {
+        if (array.length == 0) {
+            if (historyString)
+                historyString += ' : ';
+            historyString += 'Current';
+            historyDisplay.html(historyString);
+            return;
+        }
+
+        // otherwise, the array has a head node.
+        var headId = array.shift();
+        $.getJSON('/bulb/' + headId, function (headBulb) {
+            if (historyString)
+                historyString += ' : ';
+            historyString += '<a href="#" class="linkShowBulb" rel="' +
+                             headBulb._id + '">' + headBulb.title + '</a>';
+
+            aux(array);
+        });
+    }
+
+    aux(historyCopy);
+}
+
+function selectBulb(event, bulbId) {
     if (event)
         event.preventDefault();
 
@@ -286,14 +319,36 @@ function selectBulb(event, bulbId) {
     if (!bulbId)
         bulbId = $(this).attr('rel');
 
-    // if the new bulb is in the list of outgoing bulbs for the current bulb...
-    if (activeBulb && activeBulb.outgoingNodes &&
-        activeBulb.outgoingNodes.indexOf(bulbId) > -1)
-        // ... then push the current bulb into the history array
-        history.push(activeBulbId);
-    else
-        // ... otherwise, clear the history array.
+    // update the history array
+    if (!activeBulbId) {
         history = [];
+        drawHistory();
+    } else {
+        var oldActiveBulb = activeBulb;
+        $.getJSON('/bulb/' + oldActiveBulb._id + '/children', function (children) {
+            // scrap all the other data and just keep the ids
+            children = children.map(function (child) {
+                return child._id;
+            });
+
+            // if the new bulb is one back from where we just were...
+            if (history[history.length-1] == bulbId)
+                // ... then pop it off, but leave the rest of the history intact
+                history.pop();
+            // or, if the new bulb is related to the current bulb...
+            else if ((oldActiveBulb.outgoingNodes &&
+                      oldActiveBulb.outgoingNodes.indexOf(bulbId) > -1) ||
+                    (children && children.indexOf(bulbId) > -1) ||
+                    (oldActiveBulb.parentContainer == bulbId))
+                // ... then push the current bulb into the history array
+                history.push(oldActiveBulb._id);
+            else
+                // ... otherwise, clear the history array.
+                history = [];
+
+            drawHistory();
+        });
+    }
 
     // in any case, set the current bulb to be the new bulb.
     activeBulbId = bulbId;
@@ -409,7 +464,6 @@ function selectBulb(event, bulbId) {
         // for the contained nodes
         $("#bulbInfoContainsNodes").html('');
         $.getJSON('/bulb/' + activeBulbId + '/children', function (children) {
-            console.log('children: ' + children);
             $.each(children, function (child) {
                 var listContent = '';
                 listContent += '<li>';
@@ -597,5 +651,20 @@ function pickParentContainer(event) {
         activeBulb.parentContainer = path.path.pop();
 
         updateBulb(null);
+    });
+}
+
+function navigateClicked(event) {
+    if (event)
+        event.preventDefault();
+
+    launchPathSelector(event.target, function (path) {
+        if (!path)
+            return;
+
+        if (path.path.length == 0)
+            return;
+
+        selectBulb(null, path.path.pop());
     });
 }

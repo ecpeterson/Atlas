@@ -21,6 +21,19 @@
             <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
         </p>
 
+        <p>Navigation:
+
+            <a href="#" class="btn btn-default" id="btnNewBulb">New Bulb</a>
+            <a href="#" class="btn btn-default" id="navigateButton">Jump To...</a>
+        </p>
+
+        <p><strong>History:</strong>
+            <span id="historyDisplay"></span> <br />
+
+            <strong>Path:</strong>
+            <span id="pathDisplay"></span>
+        </p>
+
         <p>Data in highlighted node:</p>
         <div id="bulbInfo">
             <fieldset>
@@ -121,16 +134,6 @@
                 </div></div>
             </fieldset>
         </div>
-
-        <p>Navigate to toplevel nodes:</p>
-        <div id="bulbList">
-            <ul>
-                <!-- This will get populated. -->
-            </ul>
-        </div>
-        <fieldset>
-            <button id="btnNewBulb">New Bulb</button>
-        </fieldset>
     </div>
 
     <div id="divSVG">
