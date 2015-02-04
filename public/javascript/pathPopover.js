@@ -25,7 +25,7 @@ $(document).ready(function() {
     popup.append('<div class="path-popup-body"></div>');
     popupText = $('div.path-popup-body');
 
-    popup.append('<button class="path-popup-close-button">Close</button>');
+    popup.append('<button class="path-popup-close-button">Cancel</button>');
     $('button.path-popup-close-button').click(closeClick);
 
     // set up click hooks for the to-be-created popover links
@@ -43,21 +43,57 @@ $(document).ready(function() {
 function popoverSelectWorkspace(event) {
     if (event)
         event.preventDefault();
+
+    var workspaceId = $(this).attr('rel');
+
+    backgroundPath.workspace = workspaceId;
+
+    $.getJSON('/workspace/' + workspaceId + '/children', function (bulbs) {
+        if (bulbs.length > 0) {
+            renderPopover();
+        } else {
+            popoverChooseThis(null);
+        }
+    });
 }
 
 function popoverSelectBulb(event) {
     if (event)
         event.preventDefault();
+
+    var bulbId = $(this).attr('rel');
+
+    backgroundPath.path.push(bulbId);
+
+    $.getJSON('/bulb/' + bulbId + '/children', function (bulbs) {
+        if (bulbs.length > 0) {
+            renderPopover();
+        } else {
+            popoverChooseThis(null);
+        }
+    });
 }
 
 function popoverChooseThis(event) {
     if (event)
         event.preventDefault();
+
+    popup.hide();
+
+    holdCallback(backgroundPath);
 }
 
 function popoverDeselect(event) {
     if (event)
         event.preventDefault();
+
+    if (backgroundPath.path.length > 0) {
+        backgroundPath.path.pop();
+    } else {
+        backgroundPath.workspace = '';
+    }
+
+    renderPopover();
 }
 
 function closeClick(event) {
@@ -66,8 +102,7 @@ function closeClick(event) {
 
     popup.hide();
 
-    // TODO: pass the path object back to the callback function
-    holdCallback(null);
+    // callback never gets executed.
 }
 
 // gets called whenever the data in the popover needs to be updated

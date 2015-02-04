@@ -84,7 +84,7 @@ $(document).ready(function() {
 
     // when a bulb name is clicked, call the JS routine below
     $('#bulbList ul').on('click', 'li a.linkShowBulb', selectBulb);
-    $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkShowBulb', selectBulb);
+    $('#bulbInfoOutgoingNodes').on('click', 'li a.linkShowBulb', selectBulb);
 
     // when the 'delete' button is clicked, call the JS routine below
     //
@@ -99,7 +99,7 @@ $(document).ready(function() {
     $('a.bulbInfoAddOutgoingRef').on('click', '', addLink);
 
     // when the [-] button is clicked, remove the link
-    $('#bulbInfoOutgoingNodes ul').on('click', 'li a.linkDeleteLink', removeLink);
+    $('#bulbInfoOutgoingNodes').on('click', 'li a.linkDeleteLink', removeLink);
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -241,15 +241,11 @@ function populateTables() {
             liListContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
                            '" title="Show details">' + this.title + '</a> ';
             liListContent += '</li>';
-
-            selectListContent += '<option value="' + this._id + '">' +
-                                 this.title + '</option>';
 		});
 
 		// inject this content string into our existing HTML table.
         // NOTE: this overwrites whatever was there before.
 		$('#bulbList ul').html(liListContent);
-        $('#bulbInfoOutgoingSelector select').html(selectListContent);
 	});
 };
 
@@ -378,7 +374,7 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
-        $('#bulbInfoOutgoingNodes ul').html('');
+        $('#bulbInfoOutgoingNodes').html('');
         $.each(response.outgoingNodes, function() {
             $.getJSON('/bulb/' + this, function(listBulb) {
                 var listContent = '';
@@ -390,7 +386,7 @@ function selectBulb(event, bulbId) {
                                listBulb._id +
                                '" title="Delete Link"> [ - ] </a> ';
                 listContent += '</li>';
-                $('#bulbInfoOutgoingNodes ul').append(listContent);
+                $('#bulbInfoOutgoingNodes').append(listContent);
             });
         });
         $('#bulbInfoModificationTime').text(response.modificationTime);
@@ -482,23 +478,25 @@ function addLink(event) {
     if (event)
         event.preventDefault();
 
-    launchPathSelector(event.target, function (path) { return; });
+    launchPathSelector(event.target, function (path) {
+        // can't do NOPs
+        if (!activeBulbId || !path)
+            return;
 
-    var selector = $('#bulbInfoOutgoingSelector select');
+        // can't link to a workspace
+        if (path.path.length == 0)
+            return;
 
-    if (!activeBulbId || !selector.val())
-        return;
+        var targetId = path.path[path.path.length - 1];
 
-    // validation:
-    if ((selector.val() == activeBulbId) || // can't select ourselves
-        (activeBulb.outgoingNodes.indexOf(selector.val()) > -1)) // can't repeat
-        return;
+        if ((targetId == activeBulbId) || // can't select ourselves
+            (activeBulb.outgoingNodes.indexOf(targetId) > -1)) // can't repeat
+            return;
 
-    // add this to our list of links
-    activeBulb.outgoingNodes.push(selector.val());
+        activeBulb.outgoingNodes.push(targetId);
 
-    // push the update to the remote server
-    updateBulb(null);
+        updateBulb(null);
+    });
 }
 
 function removeLink(event) {
