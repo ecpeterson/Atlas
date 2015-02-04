@@ -14,10 +14,10 @@ var workspaceSchema = mongoose.Schema({
 
 // cf. app/models/user.js for how to attach methods to a bulb object
 
-bulbSchema.methods.hasAccess = function(user_id) {
+workspaceSchema.methods.hasAccess = function(user_id) {
 	return (this.users.indexOf(user_id) > -1);
 };
 
-var Workspace = mongoose.model('Workspace', bulbSchema);
+var Workspace = mongoose.model('Workspace', workspaceSchema);
 
 module.exports = Workspace;

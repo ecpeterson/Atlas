@@ -49,6 +49,7 @@ app.use(flash()); // "use connect-flash for flash messages stored in session"
 require('./app/routes/login.js')(app, passport);
 require('./app/routes/index.js')(app);
 require('./app/routes/bulb-manip.js')(app);
+require('./app/routes/workspace-manip.js')(app);
 
 // LAUNCH =====================================================================
 
