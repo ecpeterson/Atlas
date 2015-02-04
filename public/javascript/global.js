@@ -390,11 +390,12 @@ function selectBulb(event, bulbId) {
             });
         });
         $('#bulbInfoModificationTime').text(response.modificationTime);
-        if (response.parents) {
-            $('#bulbInfoParentsWorkspaceId').text(response.parents.workspaceId);
-            $('#bulbInfoParentsContainerId').text(response.parents.containerId);
-            $('#bulbInfoParentsOriginalId').text(response.parents.originalId);
-        }
+        $('#bulbInfoParentsWorkspaceId').text(response.parentWorkspace ?
+            response.parentWorkspace : 'None.' );
+        $('#bulbInfoParentsContainerId').text(response.parentContainer ?
+            response.parentContainer : 'None.');
+        $('#bulbInfoParentsOriginalId').text(response.parentOriginal ?
+            response.parentOriginal : 'None.');
         $('#bulbInfoShares').text(response.shares);
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
             if (userinfo.msg) {
