@@ -49,19 +49,70 @@ module.exports = function(app) {
 	});
 
 	// MODIFY WORKSPACE ========================================================
-	//app.put('/workspace/:id', app.isLoggedIn, function(req, res) {
+	app.put('/workspace/:id', app.isLoggedIn, function(req, res) {
+		Workspace.findById(req.params.id, function(err, workspace) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
 
-	//});
+			if (!workspace.hasAccess(req.user._id)) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
+			var newWorkspace = req.body;
+			if (newWorkspace.title)
+				workspace.title = newWorkspace.title;
+			if (newWorkspace.users && newWorkspace.users.length != 0)
+				workspace.users = newWorkspace.users;
+			if (newWorkspace.text)
+				workspace.text = newWorkspace.text;
+
+			workspace.save(function (err) {
+				if (err) {
+					res.send({ msg : err });
+					return;
+				}
+
+				res.json(workspace);
+			});
+		});
+	});
 
 	// DELETE WORKSPACE ========================================================
-	//app.delete('/workspace/:id', app.isLoggedIn, function(req, res) {
+	app.delete('/workspace/:id', app.isLoggedIn, function(req, res) {
+		Workspace.findById(req.params.id, function(err, workspace) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
 
-	//});
+			if (!workspace.hasAccess(req.user._id)) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
+			workspace.remove();
+		});
+
+		// XXX: if this workspace had children, they all need to be orphaned.
+	});
 
 	// CREATE NEW WORKSPACE ====================================================
-	//app.post('/newworkspace', app.isLoggedIn, function(req, res) {
+	app.post('/newworkspace', app.isLoggedIn, function(req, res) {
+		var workspace = new Workspace();
+		workspace.users.push(req.user._id);
 
-	//});
+		workspace.save(function (err) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			res.json(workspace);
+		});
+	});
 
 	// REQUEST LIST OF WORKSPACES ACTIVE USER PARTICIPATES IN ==================
 	app.get('/workspaces', app.isLoggedIn, function(req, res) {
