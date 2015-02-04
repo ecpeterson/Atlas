@@ -8,8 +8,10 @@ module.exports = function(app) {
 	app.get('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err)
+			if (err) {
 				res.send({ msg : err });
+				return;
+			}
 
 			if (!(bulb.hasReadAccess(req.user._id))) {
 				res.send({ msg : 'Access forbidden.' });
@@ -26,8 +28,10 @@ module.exports = function(app) {
 	app.get('/bulb/:id/text', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err)
+			if (err) {
 				res.send({ msg : err });
+				return;
+			}
 
 			if (!(bulb.hasReadAccess(req.user._id))) {
 				res.send({ msg : 'Access forbidden.' });
@@ -82,8 +86,10 @@ module.exports = function(app) {
 	app.delete('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err)
+			if (err) {
 				res.send({ msg : err });
+				return;
+			}
 
 			if (!(bulb.hasWriteAccess(req.user._id))) {
 				res.send({ msg : 'Access forbidden.' });
@@ -102,8 +108,10 @@ module.exports = function(app) {
 	// UPDATE INDIVIDUAL BULB ==================================================
 	app.put('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
-			if (err)
+			if (err) {
 				res.send({ msg : err });
+				return;
+			}
 
 			if (!(bulb.hasWriteAccess(req.user._id))) {
 				res.send({ msg : 'Access forbidden.' });
@@ -199,8 +207,10 @@ module.exports = function(app) {
 		// write the bulb to the database
 		bulb.save(function(err) {
 			// if there's an error, deal with it.
-			if (err)
+			if (err) {
 				res.send({ msg : err });
+				return;
+			}
 
 			// otherwise...
 			res.json(bulb);
