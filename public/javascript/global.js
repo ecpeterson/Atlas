@@ -367,6 +367,8 @@ function selectBulb(event, bulbId) {
         graph.nodes = [];
         graph.links = [];
         var historyChain = [];
+        // XXX: this history manipulation stuff is desynchronized with with the
+        // history manipulation block above. this WILL cause problems.
         { // CENTER:
             // add the current bulb to the list of vertices
             historyChain.push(activeBulb);
