@@ -125,12 +125,16 @@ module.exports = function(app) {
 				return;
 			}
 
-			// copy over the non-internal bulb attributes and save the new bulb
-			bulb.title = newBulb.title;
-			if (newBulb.text)
-				bulb.text = newBulb.text;
-			bulb.resolved = newBulb.resolved;
-			bulb.modificationTime = new Date();
+			// copy over the non-internal bulb attributes and save the new bulb.
+			//
+			// refuse to overwrite the data in a node we replicated.
+			if (bulb.parentOriginal) {
+				bulb.title = newBulb.title;
+				if (newBulb.text)
+					bulb.text = newBulb.text;
+				bulb.resolved = newBulb.resolved;
+				bulb.modificationTime = new Date();
+			}
 
 			// the list of outgoing references needs to be validated.
 			// TODO: is this too abusive of the database? can we 'map' all the
@@ -257,5 +261,89 @@ module.exports = function(app) {
 
 		// return all the titles we were asked for.
 		res.send(resultList);
+	});
+
+	// MAKES A COPY OF A NONCOLLABORATIVELY SHARED NODE ========================
+	app.post('/bulb/:id/copy', app.isLoggedIn, function(req, res) {
+		Bulb.findById(req.params.id, function (err, bulb) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			if (bulb.shares.indexOf(req.user._id) == -1) {
+				res.send({ msg : 'Access forbidden.' });
+				return;
+			}
+
+			// create a duplicate of this node for our own collection.
+			var dupBulb = new Bulb();
+			dupBulb.ownerId = req.user._id;
+			dupBulb.title = bulb.title;
+			dupBulb.resolved = bulb.resolved;
+			dupBulb.text = bulb.text;
+			dupBulb.modificationTime = bulb.modificationTime;
+			dupBulb.parentOriginal = id;
+			// deliberately don't copy over members that have to do with the
+			// topology of the original owner's graph.
+
+			// save and throw back to caller
+			dupBulb.save(function (err) {
+				if (err) {
+					res.send({ msg : err });
+					return;
+				}
+
+				res.json(dupBulb);
+			});
+		});
+	});
+
+	app.post('/bulb/:id/sync', app.isLoggedIn, function(req, res) {
+		Bulb.findById(id, function (err, dupBulb) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			if (!dupBulb.hasWriteAccess(req.user._id)) {
+				res.send({ msg : 'Write access forbidden.' });
+				return;
+			}
+
+			if (!dupBulb.parentOriginal) {
+				res.send({ msg : 'Invalid operation: no parent.' });
+				return;
+			}
+
+			Bulb.findById(dupBulb.parentOriginal, function(err, bulb) {
+				if (err) {
+					res.send({ msg : err });
+					return;
+				}
+
+				if (!bulb.shares ||
+					bulb.shares.indexOf(req.user._id) == -1) {
+					res.send({ msg : 'Read access forbidden.' });
+					return;
+				}
+
+				// OK, we have access to everything, so perform a sync.
+				dupBulb.title = bulb.title;
+				dupBulb.resolved = bulb.resolved;
+				dupBulb.text = bulb.text;
+				dupBulb.modificationTime = bulb.modificationTime;
+
+				// save and throw back to caller
+				dupBulb.save(function (err) {
+					if (err) {
+						res.send({ msg : err });
+						return;
+					}
+
+					res.json(dupBulb);
+				});
+			});
+		});
 	});
 };
