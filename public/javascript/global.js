@@ -389,7 +389,9 @@ function selectBulb(event, bulbId) {
                 $('#bulbInfoOutgoingNodes').append(listContent);
             });
         });
-        $('#bulbInfoModificationTime').text(response.modificationTime);
+        var date = new Date(response.modificationTime);
+        $('#bulbInfoModificationTime').html(date.toLocaleDateString() +
+            ',<br />' + date.toLocaleTimeString());
         $('#bulbInfoParentsWorkspaceId').text(response.parentWorkspace ?
             response.parentWorkspace : 'None.' );
         $('#bulbInfoParentsContainerId').text(response.parentContainer ?
