@@ -66,7 +66,7 @@ module.exports = function(app) {
 				return;
 			}
 
-			bulb.find({ parentContainer : req.params.id }, function(err, bulbs) {
+			Bulb.find({ parentContainer : req.params.id }, function(err, bulbs) {
 				if (err) {
 					res.send({ msg : err });
 					return;
