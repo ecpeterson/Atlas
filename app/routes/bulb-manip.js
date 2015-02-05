@@ -128,7 +128,7 @@ module.exports = function(app) {
 			// copy over the non-internal bulb attributes and save the new bulb.
 			//
 			// refuse to overwrite the data in a node we replicated.
-			if (bulb.parentOriginal) {
+			if (!bulb.parentOriginal) {
 				bulb.title = newBulb.title;
 				if (newBulb.text)
 					bulb.text = newBulb.text;
@@ -166,6 +166,9 @@ module.exports = function(app) {
 			bulb.parentContainer = newBulb.parentContainer;
 			bulb.parentWorkspace = newBulb.parentWorkspace;
 			bulb.parentOriginal = newBulb.parentOriginal;
+
+			console.log('shares: ' + newBulb.shares);
+			bulb.shares = newBulb.shares;
 
 			bulb.save(function(err) {
 				if (err)
@@ -283,7 +286,7 @@ module.exports = function(app) {
 			dupBulb.resolved = bulb.resolved;
 			dupBulb.text = bulb.text;
 			dupBulb.modificationTime = bulb.modificationTime;
-			dupBulb.parentOriginal = id;
+			dupBulb.parentOriginal = req.params.id;
 			// deliberately don't copy over members that have to do with the
 			// topology of the original owner's graph.
 

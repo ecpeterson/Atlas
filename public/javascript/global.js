@@ -110,11 +110,14 @@ $(document).ready(function() {
     $('#bulbInfoParentsContainerId').on('click', 'a', selectBulb);
 
     // when the original parent permalink is clicked, synchronize the node
-    $('bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal',
+    $('#bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal',
                                       syncBulbWithOriginal);
 
     // navigation clicker
     $('a#navigateButton').on('click', navigateClicked);
+
+    // duplicate node button
+    $('a#duplicateNode').on('click', duplicateNodeFn);
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -510,20 +513,20 @@ function selectBulb(event, bulbId) {
         }
 
         if (response.parentOriginal) {
-            $.getJSON('/bulb/' + response.parentContainer + '/originalparent',
+            $.getJSON('/bulb/' + response.parentOriginal + '/originalowner',
                     function (original) {
                 $('#bulbInfoParentsOriginalId').html('<a href="#" ' +
-                    'class="syncWithOriginal">' + original.fullname + '</a>');
+                    'class="syncWithOriginal">' + original.name + '</a>');
             });
         } else {
             $('#bulbInfoParentsOriginalId').text('None.');
         }
         
         var sharesText = '';
-        $.each(response.shares, function (share) {
+        $.each(response.shares, function (index) {
             if (sharesText)
                 sharesText += '\n';
-            sharesText += share;
+            sharesText += response.shares[index];
         });
         $('#bulbInfoShares').val(sharesText);
 
@@ -588,6 +591,9 @@ function updateBulb(event) {
     freshBulb.resolved = $('#bulbInfoResolved')[0].checked;
     freshBulb.text = $('#bulbInfoText').val();
     freshBulb.shares = $('#bulbInfoShares').val().split(/\n/);
+
+    console.log('shares: ' + $('#bulbInfoShares').val());
+    console.log('split shares: ' + $('#bulbInfoShares').val().split(/\n/));
 
     $.ajax({
         type : 'PUT',
@@ -709,5 +715,21 @@ function syncBulbWithOriginal(event) {
             alert('Error: ' + response.msg);
         
         selectBulb(null, activeBulbId);
+    });
+}
+
+function duplicateNodeFn (event) {
+    if (event)
+        event.preventDefault();
+
+    var nodeId = $('#duplicateNodeInput').val();
+
+    $.post('/bulb/' + nodeId + '/copy', function (response) {
+        if (response.msg) {
+            alert('Error: ' + response.msg);
+            return;
+        }
+
+        selectBulb(null, response._id);
     });
 }
