@@ -233,8 +233,8 @@ var rerenderBulbText;
 
         var content = textSource.val();
 
-        content = content.replace('---', '`&mdash;`');
-        content = content.replace('--', '`&ndash;`');
+        content = content.replace(/---/g, '`&mdash;`');
+        content = content.replace(/--/g, '`&ndash;`');
 
         contentArray = content.split('`');
         content = '';
