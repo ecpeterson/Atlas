@@ -5,6 +5,11 @@ var Workspace = require('../models/workspace.js');
 var Bulb = require('../models/bulb.js');
 
 module.exports = function(app) {
+	// USER INTERFACE TO WORKSPACES ============================================
+	app.get('/workspace', app.isLoggedIn, function(req, res) {
+		res.render('workspace.ejs');
+	});
+
 	// REQUEST LIST OF TOPLEVEL WORKSPACE CHILD NODES ==========================
 	app.get('/workspace/:id/children', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function (err, workspace) {

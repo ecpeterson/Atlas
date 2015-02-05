@@ -1,0 +1,52 @@
+<!-- views/workspace.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Atlas - Workspaces</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
+<body>
+<div class="container">
+
+    <div class="text-center jumbotron">
+        <h1><span class="fa fa-lock"></span> Atlas</h1>
+    </div>
+
+    <div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Workspaces</h1>
+        <a href="#" class="btn btn-default btn-sm" id="closeWindowBtn">Home</a>
+    </div>
+
+    <!-- Bootstrap table -->
+    <table class="table">
+        <thead>
+            <td>Title</td>
+            <td>Users</td>
+        </thead>
+        <span id="tableEntries">
+            <!--
+            <tr>
+                <td>Homotopical algebra</td>
+                <td>Eric, Aaron, Kevin</td>
+                <td>Save button</td>
+                <td>Delete button</td>
+            </tr>
+            -->
+        </span>
+        <tr>
+            <td></td>
+            <td></td>
+            <td><a href="#" class="btn btn-default btn-sm" id="refreshBtn">Refresh</a></td>
+            <td><a href="#" class="btn btn-default btn-sm" id="newBtn">New</a></td>
+        </tr>
+    </table>
+
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> <!-- Need this for various operations -->
+
+<script src="/javascript/workspace.js"></script> <!-- Main page code -->
+
+</body>
+</html>
