@@ -231,10 +231,20 @@ var rerenderBulbText;
 
         bulbTextNeedsRerender = false;
 
-        var content = markdown.toHTML(textSource.val());
+        var content = textSource.val();
 
-        content = '<p>' + content.replace(/\n([ \t]*\n)+/g, '</p><p>')
-                 .replace('\n', '<br />') + '</p>';
+        contentArray = content.split('`');
+        content = '';
+        var index;
+        for (index = 0; index < contentArray.length; index++) {
+            if (index % 2 == 0)
+                content +=
+                    markdown.toHTML(contentArray[index])
+                        .slice(0,-4) // remove trailing </p>
+                        .substring(3); // remove leading <p>
+            else
+                content += contentArray[index];
+        }
 
         textTarget.html(content);
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, "bulbInfoRenderedText"]);
