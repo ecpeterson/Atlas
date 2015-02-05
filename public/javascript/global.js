@@ -110,7 +110,8 @@ $(document).ready(function() {
     $('#bulbInfoParentsContainerId').on('click', 'a', selectBulb);
 
     // when the original parent permalink is clicked, synchronize the node
-    $('bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal', syncBulbWithOriginal);
+    $('bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal',
+                                      syncBulbWithOriginal);
 
     // navigation clicker
     $('a#navigateButton').on('click', navigateClicked);
@@ -518,7 +519,14 @@ function selectBulb(event, bulbId) {
             $('#bulbInfoParentsOriginalId').text('None.');
         }
         
-        $('#bulbInfoShares').text(response.shares);
+        var sharesText = '';
+        $.each(response.shares, function (share) {
+            if (sharesText)
+                sharesText += '\n';
+            sharesText += share;
+        });
+        $('#bulbInfoShares').val(sharesText);
+
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
             if (userinfo.msg) {
                 alert('Error: ' + userinfo.msg);
@@ -579,6 +587,7 @@ function updateBulb(event) {
     freshBulb.title = $('#bulbInfoTitle').val();
     freshBulb.resolved = $('#bulbInfoResolved')[0].checked;
     freshBulb.text = $('#bulbInfoText').val();
+    freshBulb.shares = $('#bulbInfoShares').val().split(/\n/);
 
     $.ajax({
         type : 'PUT',
