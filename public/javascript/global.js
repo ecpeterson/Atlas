@@ -8,7 +8,7 @@ var width = 400,
 var activeBulbId = '';
 var activeBulb = {};
 var activeBulbD3 = {};
-var history = [];
+var bulbHistory = [];
 
 var svg = {};
 var force = {};
@@ -292,8 +292,8 @@ function drawHistory() {
     var historyCopy = [];
     var historyString = '';
 
-    if (history)
-        historyCopy = history.slice();
+    if (bulbHistory)
+        historyCopy = bulbHistory.slice();
 
     var aux;
 
@@ -334,7 +334,7 @@ function selectBulb(event, bulbId) {
         // we're not moving, just refreshing. do nothing.
     } else if (!activeBulbId) {
         // this is the initial state, so initialize.
-        history = [];
+        bulbHistory = [];
         drawHistory();
     } else {
         // we have to make a more complicated decision.
@@ -346,19 +346,19 @@ function selectBulb(event, bulbId) {
             });
 
             // if the new bulb is one back from where we just were...
-            if (history[history.length-1] == bulbId)
+            if (bulbHistory[bulbHistory.length-1] == bulbId)
                 // ... then pop it off, but leave the rest of the history intact
-                history.pop();
+                bulbHistory.pop();
             // or, if the new bulb is related to the current bulb...
             else if ((oldActiveBulb.outgoingNodes &&
                       oldActiveBulb.outgoingNodes.indexOf(bulbId) > -1) ||
                     (children && children.indexOf(bulbId) > -1) ||
                     (oldActiveBulb.parentContainer == bulbId))
                 // ... then push the current bulb into the history array
-                history.push(oldActiveBulb._id);
+                bulbHistory.push(oldActiveBulb._id);
             else
                 // ... otherwise, clear the history array.
-                history = [];
+                bulbHistory = [];
 
             drawHistory();
         });
@@ -389,11 +389,11 @@ function selectBulb(event, bulbId) {
         }
         { // HISTORY and CENTER:
             // start by assembling the incoming history chain
-            if (history.length > 2)
+            if (bulbHistory.length > 2)
                 historyChain.push({ _id : "historyDummyNode",
                                     title : "..." });
-            historyChain.concat(history.slice(history.length-2,
-                                              history.length));
+            historyChain.concat(bulbHistory.slice(bulbHistory.length-2,
+                                              bulbHistory.length));
             historyChain.push(activeBulb);
 
             // add those bulbs to the vertex collection
