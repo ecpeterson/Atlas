@@ -22,52 +22,80 @@ var bulbSchema = mongoose.Schema({
 
 // cf. app/models/user.js for how to attach methods to a bulb object
 
-bulbSchema.methods.hasReadAccess = function(user_id) {
-	return ((this.ownerId == user_id) ||
-			// check for workspace permissions
-			false);
+bulbSchema.methods.hasReadAccess = function(user_id, callback) {
+	var Workspace = this.model('Workspace');
+	
+	// simple ownership check
+	if (this.ownerId == user_id)
+		return callback(true);
+
+	// check the path to see if we share a workspace
+	this.findPath(function (path) {
+		if (path.workspace) {
+			Workspace.findById(path.workspace, function (err, workspace) {
+				if (err)
+					return;
+
+				if (workspace.hasAccess(user_id))
+					return callback(true);
+			});
+		} else
+			// we don't have access.
+			return callback(false);
+	});
 };
 
-bulbSchema.methods.hasWriteAccess = function(user_id) {
-	return ((this.ownerId == user_id) ||
-			// check for workspace permissions
-			false);
+bulbSchema.methods.hasWriteAccess = function(user_id, callback) {
+	var Workspace = this.model('Workspace');
+
+	// simple ownership check
+	if (this.ownerId == user_id)
+		return callback(true);
+
+	// check the path to see if we share a workspace
+	this.findPath(function (path) {
+		if (path.workspace) {
+			Workspace.findById(path.workspace, function (err, workspace) {
+				if (err)
+					return;
+
+				if (workspace.hasAccess(user_id))
+					return callback(true);
+			});
+		} else
+			// we don't have access.
+			return callback(false);
+	});
 };
 
-bulbSchema.methods.findPath = function(user_id) {
+bulbSchema.methods.findPath = function(callback) {
 	var Bulb = this.model('Bulb');
 
-	var aux = function (bulb) {
-		// check to be sure we have read access.
-		if (!bulb.hasReadAccess(user_id))
-			return { msg : 'Bad read access to ' + bulbId + '.' };
+	var result = { workspace : '',
+				   path : [] };
 
-		// if we live in a workspace, announce it
-		if (bulb.parentWorkspace)
-			return { workspace : bulb.parentWorkspace,
-					 path : [bulb._id] };
+	var aux = function (bulb, result) {
+		// prepend this bulb to the path we're building
+		result.path.unshift(bulb._id);
 
-		// if we live in a container, recurse on it
-		if (bulb.parentContainer) {
-			var result = Bulb.findById(bulb.parentContainer,
-				function(err, containerBulb) {
-					if (err)
-						return { msg : err };
-
-					aux(containerBulb);
-				});
-
-			result.path.push(bulb._id);
-
-			return result;
+		// if we have a workspace, great, set it and run the callback
+		if (bulb.parentWorkspace) {
+			result.workspace = bulb.parentWorkspace;
+			return callback(result);
 		}
 
-		// otherwise, we're out of options.
-		return { workspace : '',
-				 path : [bulb._id] };
-	};
+		// if we don't have a workspace, maybe we have a parent container
+		if (bulb.parentContainer) {
+			return Bulb.findById(bulb.parentContainer, function (newBulb) {
+				return aux(newBulb, result);
+			});
+		}
 
-	return aux(this);
+		// if we have neither a workspace nor a container, we're toplevel.
+		return callback(result);
+	}
+
+	return aux(this, result);
 };
 
 var Bulb = mongoose.model('Bulb', bulbSchema);

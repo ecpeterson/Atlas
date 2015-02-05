@@ -13,14 +13,16 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!(bulb.hasReadAccess(req.user._id))) {
-				res.send({ msg : 'Access forbidden.' });
-				return;
-			}
+			bulb.hasReadAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Access forbidden.' });
+					return;
+				}
 
-			bulb.text = '';
+				bulb.text = '';
 
-			res.send(bulb);
+				res.send(bulb);
+			});
 		});
 	});
 
@@ -33,12 +35,14 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!(bulb.hasReadAccess(req.user._id))) {
-				res.send({ msg : 'Access forbidden.' });
-				return;
-			}
+			bulb.hasReadAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Access forbidden.' });
+					return;
+				}
 
-			res.send(bulb);
+				res.send(bulb);
+			});
 		});
 	});
 
@@ -51,8 +55,21 @@ module.exports = function(app) {
 				return;
 			}
 
-			res.send(bulb.findPath(req.user._id));
-			return;
+			// TODO: in fact, for security reasons we might want to run findPath
+			// and then test for read access on each node that's returned.  this
+			// can be exploited to reveal a little bit about the topology of
+			// someone else's node collection, but no data about the nodes
+			// themselves.
+			bulb.hasReadAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Access forbidden.' });
+					return;
+				}
+
+				bulb.findPath(function (result) {
+					res.send(result);
+				});
+			});
 		});
 	});
 
@@ -65,19 +82,23 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!bulb.hasReadAccess(req.user._id)) {
-				res.send({ msg : 'Bad read access to ' + req.params.id + '.'});
-				return;
-			}
-
-			Bulb.find({ parentContainer : req.params.id }, function(err, bulbs) {
-				if (err) {
-					res.send({ msg : err });
+			bulb.hasReadAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Bad read access to ' + req.params.id +
+						'.'});
 					return;
 				}
 
-				res.send(bulbs);
-				return;
+				Bulb.find({ parentContainer : req.params.id },
+						function(err, bulbs) {
+					if (err) {
+						res.send({ msg : err });
+						return;
+					}
+
+					res.send(bulbs);
+					return;
+				});
 			});
 		});
 	});
@@ -91,18 +112,20 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!(bulb.hasWriteAccess(req.user._id))) {
-				res.send({ msg : 'Access forbidden.' });
-				return;
-			}
+			bulb.hasWriteAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Access forbidden.' });
+					return;
+				}
 
-			Bulb.remove({ _id : req.params.id }, function (err) {
-				res.send({ msg : err });
+				Bulb.remove({ _id : req.params.id }, function (err) {
+					res.send({ msg : err });
+				});
+
+				// XXX: if this node had children, they all need to be moved
+				// into the parent container.
 			});
 		});
-
-		// XXX: if this node had children, they all need to be moved into the
-		// parent container.
 	});
 
 	// UPDATE INDIVIDUAL BULB ==================================================
@@ -113,68 +136,71 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!(bulb.hasWriteAccess(req.user._id))) {
-				res.send({ msg : 'Access forbidden.' });
-				return;
-			}
+			bulb.hasWriteAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Access forbidden.' });
+					return;
+				}
 
-			var newBulb = req.body;
+				var newBulb = req.body;
 
-			if (Date(bulb.modificationTime) > Date(newBulb.modificationTime)) {
-				res.send({ msg : 'Bulb has changed since load.' });
-				return;
-			}
+				if (Date(bulb.modificationTime) >
+							Date(newBulb.modificationTime)) {
+					res.send({ msg : 'Bulb has changed since load.' });
+					return;
+				}
 
-			// copy over the non-internal bulb attributes and save the new bulb.
-			//
-			// refuse to overwrite the data in a node we replicated.
-			if (!bulb.parentOriginal) {
-				bulb.title = newBulb.title;
-				if (newBulb.text)
-					bulb.text = newBulb.text;
-				bulb.resolved = newBulb.resolved;
-				bulb.modificationTime = new Date();
-			}
+				// copy over the non-internal bulb attributes and save the new
+				// bulb. refuse to overwrite the data in a node we replicated.
+				if (!bulb.parentOriginal) {
+					bulb.title = newBulb.title;
+					if (newBulb.text)
+						bulb.text = newBulb.text;
+					bulb.resolved = newBulb.resolved;
+					bulb.modificationTime = new Date();
+				}
 
-			// the list of outgoing references needs to be validated.
-			// TODO: is this too abusive of the database? can we 'map' all the
-			// id strings to bulbs in one go?
-			if (newBulb.outgoingNodes) {
-				var validatedOutgoingNodes = newBulb.outgoingNodes.filter(
-					function(element) {
-						var ret;
-						ret = Bulb.findOne({ _id : element }, function(err, bulb) {
-							if (err) {
-								// is this too lazy? if we, like, fail to connect
-								// to the database, we don't want to just delete
-								// all of the node's references... do we?
-								return false;
-							}
-							else {
-								return bulb.hasReadAccess(req.user._id);
-							}
+				// the list of outgoing references needs to be validated.
+				// TODO: is this too abusive of the database? can we 'map' all
+				// the id strings to bulbs in one go?
+				if (newBulb.outgoingNodes) {
+					var validatedOutgoingNodes = newBulb.outgoingNodes.filter(
+						function(element) {
+							var ret;
+							ret = Bulb.findOne({ _id : element },
+									function(err, bulb) {
+								if (err) {
+									// is this too lazy? if we, like, fail to
+									// connect to the database, we don't want to
+									// just delete all of the node's
+									// references... do we?
+									return false;
+								}
+								else {
+									return bulb.hasReadAccess(req.user._id);
+								}
+							});
+
+							return ret;
 						});
+					bulb.outgoingNodes = validatedOutgoingNodes;
+				} else {
+					bulb.outgoingNodes = [];
+				}
 
-						return ret;
-					});
-				bulb.outgoingNodes = validatedOutgoingNodes;
-			} else {
-				bulb.outgoingNodes = [];
-			}
+				// TODO: the node's parents also need to be validated
+				bulb.parentContainer = newBulb.parentContainer;
+				bulb.parentWorkspace = newBulb.parentWorkspace;
+				bulb.parentOriginal = newBulb.parentOriginal;
 
-			// TODO: the node's parents also need to be validated
-			bulb.parentContainer = newBulb.parentContainer;
-			bulb.parentWorkspace = newBulb.parentWorkspace;
-			bulb.parentOriginal = newBulb.parentOriginal;
+				bulb.shares = newBulb.shares;
 
-			console.log('shares: ' + newBulb.shares);
-			bulb.shares = newBulb.shares;
+				bulb.save(function(err) {
+					if (err)
+						res.send({ msg : err });
 
-			bulb.save(function(err) {
-				if (err)
-					res.send({ msg : err });
-
-				res.json(bulb);
+					res.json(bulb);
+				});
 			});
 		});
 	});
@@ -226,17 +252,15 @@ module.exports = function(app) {
 
 	// GET MINIMAL BULB DATA FROM LIST OF BULBS ================================
 	app.post('/graphdata', app.isLoggedIn, function(req, res) {
-		var resultList = [];
+		var aux = function (bulbList, resultList) {
+			// if we're at the end of the list, then finish the task.
+			if (bulbList.length == 0) {
+				return res.send(resultList);
+			}
 
-		// if there's no id list to iterate through...
-		if (!req.body.ids) {
-			// then bail.
-			res.send([]);
-			return;
-		}
-
-		req.body.ids.forEach(function (bulbId) {
-			Bulb.findById(bulbId, function(err, bulb) {
+			// otherwise, the list has some element in it.
+			var bulbId = bulbList.pop();
+			Bulb.findById(bulbId, function (err, bulb) {
 				// check for errors: can't find the bulb or can't read it
 				if (err) {
 					resultList.push({ _id : bulbId,
@@ -246,24 +270,25 @@ module.exports = function(app) {
 					return;
 				}
 
-				if (!(bulb.hasWriteAccess(req.user._id))) {
+				bulb.hasWriteAccess(req.user._id, function (ans) {
+					if (!ans) {
+						resultList.push({ _id : bulbId,
+							title : 'Read access forbidden.',
+							outgoingNodes : []});
+						return aux(bulbList, resultList);
+					}
+
+					// if we made it here, we can read the bulb. build a
+					// truncated bulb object from it & push to the result list
 					resultList.push({ _id : bulbId,
-									  title : 'Read access forbidden.',
-									  outgoingNodes : [] });
-					return;
-				}
-
-				// if we made it here, we can read the bulb. build a truncated
-				// bulb object from it & push to the result list
-				resultList.push({ _id: bulbId,
-								  title: bulb.title,
-								  outgoingNodes : bulb.outgoingNodes });
-				return;
+						title : bulb.title,
+						outgoingNodes : bulb.outgoingNodes });
+					return aux(bulbList, resultList);
+				});
 			});
-		});
+		}
 
-		// return all the titles we were asked for.
-		res.send(resultList);
+		aux(req.body.ids ? req.body.ids : [], []);
 	});
 
 	// MAKES A COPY OF A NONCOLLABORATIVELY SHARED NODE ========================
@@ -310,42 +335,44 @@ module.exports = function(app) {
 				return;
 			}
 
-			if (!dupBulb.hasWriteAccess(req.user._id)) {
-				res.send({ msg : 'Write access forbidden.' });
-				return;
-			}
-
-			if (!dupBulb.parentOriginal) {
-				res.send({ msg : 'Invalid operation: no parent.' });
-				return;
-			}
-
-			Bulb.findById(dupBulb.parentOriginal, function(err, bulb) {
-				if (err) {
-					res.send({ msg : err });
+			dupBulb.hasWriteAccess(req.user._id, function (ans) {
+				if (!ans) {
+					res.send({ msg : 'Write access forbidden.' });
 					return;
 				}
 
-				if (!bulb.shares ||
-					bulb.shares.indexOf(req.user._id) == -1) {
-					res.send({ msg : 'Read access forbidden.' });
+				if (!dupBulb.parentOriginal) {
+					res.send({ msg : 'Invalid operation: no parent.' });
 					return;
 				}
 
-				// OK, we have access to everything, so perform a sync.
-				dupBulb.title = bulb.title;
-				dupBulb.resolved = bulb.resolved;
-				dupBulb.text = bulb.text;
-				dupBulb.modificationTime = bulb.modificationTime;
-
-				// save and throw back to caller
-				dupBulb.save(function (err) {
+				Bulb.findById(dupBulb.parentOriginal, function(err, bulb) {
 					if (err) {
 						res.send({ msg : err });
 						return;
 					}
 
-					res.json(dupBulb);
+					if (!bulb.shares ||
+						bulb.shares.indexOf(req.user._id) == -1) {
+						res.send({ msg : 'Read access forbidden.' });
+						return;
+					}
+
+					// OK, we have access to everything, so perform a sync.
+					dupBulb.title = bulb.title;
+					dupBulb.resolved = bulb.resolved;
+					dupBulb.text = bulb.text;
+					dupBulb.modificationTime = bulb.modificationTime;
+
+					// save and throw back to caller
+					dupBulb.save(function (err) {
+						if (err) {
+							res.send({ msg : err });
+							return;
+						}
+
+						res.json(dupBulb);
+					});
 				});
 			});
 		});
