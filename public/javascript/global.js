@@ -289,8 +289,11 @@ function drawHistory() {
     // history is an array of bulbIds. need to grab their titles and assemble
     // a string out of them.
     var historyDisplay = $('#historyDisplay');
-    var historyCopy = history.slice();
+    var historyCopy = [];
     var historyString = '';
+
+    if (history)
+        historyCopy = history.slice();
 
     var aux;
 
