@@ -592,9 +592,6 @@ function updateBulb(event) {
     freshBulb.text = $('#bulbInfoText').val();
     freshBulb.shares = $('#bulbInfoShares').val().split(/\n/);
 
-    console.log('shares: ' + $('#bulbInfoShares').val());
-    console.log('split shares: ' + $('#bulbInfoShares').val().split(/\n/));
-
     $.ajax({
         type : 'PUT',
         url : '/bulb/' + activeBulbId,

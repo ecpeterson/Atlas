@@ -98,7 +98,9 @@ module.exports = function(app) {
 				return;
 			}
 
-			workspace.remove();
+			workspace.remove(function (err) {
+				res.send({ msg : err });
+			});
 		});
 
 		// XXX: if this workspace had children, they all need to be orphaned.
