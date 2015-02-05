@@ -299,8 +299,9 @@ module.exports = function(app) {
 		});
 	});
 
+	// SYNCHRONIZES A REPLICATED BULB WITH THE ORIGINAL ========================
 	app.post('/bulb/:id/sync', app.isLoggedIn, function(req, res) {
-		Bulb.findById(id, function (err, dupBulb) {
+		Bulb.findById(req.params.id, function (err, dupBulb) {
 			if (err) {
 				res.send({ msg : err });
 				return;
@@ -345,5 +346,23 @@ module.exports = function(app) {
 				});
 			});
 		});
+	});
+
+	// BOUNCES TO THE DATA OF THE ORIGINAL OWNER OF THE NODE ===================
+	app.get('/bulb/:id/originalowner', app.isLoggedIn, function(req, res) {
+		Bulb.findById(req.params.id, function (err, bulb) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			if (bulb.parentOriginal) {
+				res.redirect('/user/' + bulb.parentOriginal);
+				return;
+			} else {
+				res.redirect('/user/' + bulb.ownerId);
+				return;
+			}
+		})
 	});
 };

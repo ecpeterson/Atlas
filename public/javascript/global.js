@@ -109,6 +109,9 @@ $(document).ready(function() {
     $('a.parentContainerPicker').on('click', pickParentContainer);
     $('#bulbInfoParentsContainerId').on('click', 'a', selectBulb);
 
+    // when the original parent permalink is clicked, synchronize the node
+    $('bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal', syncBulbWithOriginal);
+
     // navigation clicker
     $('a#navigateButton').on('click', navigateClicked);
 
@@ -320,10 +323,14 @@ function selectBulb(event, bulbId) {
         bulbId = $(this).attr('rel');
 
     // update the history array
-    if (!activeBulbId) {
+    if (activeBulbId == bulbId) {
+        // we're not moving, just refreshing. do nothing.
+    } else if (!activeBulbId) {
+        // this is the initial state, so initialize.
         history = [];
         drawHistory();
     } else {
+        // we have to make a more complicated decision.
         var oldActiveBulb = activeBulb;
         $.getJSON('/bulb/' + oldActiveBulb._id + '/children', function (children) {
             // scrap all the other data and just keep the ids
@@ -501,8 +508,15 @@ function selectBulb(event, bulbId) {
             $('#bulbInfoParentsContainerId').text('None.');
         }
 
-        $('#bulbInfoParentsOriginalId').text(response.parentOriginal ?
-            response.parentOriginal : 'None.');
+        if (response.parentOriginal) {
+            $.getJSON('/bulb/' + response.parentContainer + '/originalparent',
+                    function (original) {
+                $('#bulbInfoParentsOriginalId').html('<a href="#" ' +
+                    'class="syncWithOriginal">' + original.fullname + '</a>');
+            });
+        } else {
+            $('#bulbInfoParentsOriginalId').text('None.');
+        }
         
         $('#bulbInfoShares').text(response.shares);
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
@@ -668,5 +682,23 @@ function navigateClicked(event) {
             return;
 
         selectBulb(null, path.path.pop());
+    });
+}
+
+function syncBulbWithOriginal(event) {
+    if (event)
+        event.preventDefault();
+
+    var confirmation = confirm('Are you sure you want to synchronize the active bulb with its original?');
+
+    if (confirmation === false) {
+        return;
+    }
+
+    $.post('/bulb/' + activeBulbId + '/sync', function (response) {
+        if (response.msg)
+            alert('Error: ' + response.msg);
+        
+        selectBulb(null, activeBulbId);
     });
 }
