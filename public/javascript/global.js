@@ -231,7 +231,7 @@ var rerenderBulbText;
 
         bulbTextNeedsRerender = false;
 
-        var content = textSource.val();
+        var content = markdown.toHTML(textSource.val());
 
         content = '<p>' + content.replace(/\n([ \t]*\n)+/g, '</p><p>')
                  .replace('\n', '<br />') + '</p>';
