@@ -672,9 +672,6 @@ function pickParentWorkspace(event) {
         if (!activeBulb || !path)
             return;
 
-        if (!path.workspace)
-            return;
-
         activeBulb.parentWorkspace = path.workspace;
 
         updateBulb(null);
@@ -690,9 +687,9 @@ function pickParentContainer(event) {
             return;
 
         if (path.path.length == 0)
-            return;
-
-        activeBulb.parentContainer = path.path.pop();
+            activeBulb.parentContainer = '';
+        else
+            activeBulb.parentContainer = path.path.pop();
 
         updateBulb(null);
     });

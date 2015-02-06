@@ -131,10 +131,8 @@ function renderPopover() {
         // WE'RE NOT IN A WORKSPACE OR A CONTAINER: WE'RE AT THE TOPMOST LEVEL.
 
         // render the header: just a 'toplevel' banner
-        if (popoverMode == 'WORKSPACE')
-            renderString += '<strong>Workspaces</strong>';
-        else
-            renderString += '<strong>Toplevel</strong>';
+        renderString += '<strong><a href="#" class="linkPopoverChooseThis">' +
+                        'Toplevel</a></strong>';
 
         // render the node selection links at this location
         $.getJSON('/toplevel', function(bulbData) {
@@ -151,6 +149,7 @@ function renderPopover() {
                 });
 
                 if (popoverMode == 'PATH') {
+                renderString += '<hr />';
                 $.each(bulbData, function (bulb) {
                     renderString += '<li><a href="#" ' +
                                     'class="linkPopoverSelectBulb" rel="' +
