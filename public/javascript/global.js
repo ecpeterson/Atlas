@@ -292,10 +292,10 @@ function newBulb(event) {
             if (response.msg) {
                 alert('Error: ' + response.msg);
             }
+
+            selectBulb(null, response._id);
         }
     );
-
-    populateTables();
 };
 
 function drawHistory() {
