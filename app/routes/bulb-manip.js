@@ -160,33 +160,8 @@ module.exports = function(app) {
 					bulb.modificationTime = new Date();
 				}
 
-				// the list of outgoing references needs to be validated.
-				// TODO: is this too abusive of the database? can we 'map' all
-				// the id strings to bulbs in one go?
-				if (newBulb.outgoingNodes) {
-					var validatedOutgoingNodes = newBulb.outgoingNodes.filter(
-						function(element) {
-							var ret;
-							ret = Bulb.findOne({ _id : element },
-									function(err, bulb) {
-								if (err) {
-									// is this too lazy? if we, like, fail to
-									// connect to the database, we don't want to
-									// just delete all of the node's
-									// references... do we?
-									return false;
-								}
-								else {
-									return bulb.hasReadAccess(req.user._id);
-								}
-							});
-
-							return ret;
-						});
-					bulb.outgoingNodes = validatedOutgoingNodes;
-				} else {
-					bulb.outgoingNodes = [];
-				}
+				// XXX: this ought to be validated.
+				bulb.outgoingNodes = newBulb.outgoingNodes;
 
 				// TODO: the node's parents also need to be validated
 				bulb.parentContainer = newBulb.parentContainer;
