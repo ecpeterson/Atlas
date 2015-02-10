@@ -192,7 +192,6 @@ function restartGraph() {
                 .attr('class', 'node')
                 .on('click', function () {
                     d = d3.select(this).node();
-                    console.log(JSON.stringify(d));
                     selectBulb(null, d._id);
                     return;
                 })
@@ -438,7 +437,7 @@ function selectBulb(event, bulbId) {
                         // filter edges from the outgoing bulbs to those bulbs
                         // which are part of the list of bulbs to display.
                         // if we can't find outOutBulb's id...
-                        outBulb.outgoingBulbs.forEach(function (outOutBulb) {
+                        outBulb.outgoingNodes.forEach(function (outOutBulb) {
                             if (graph.nodes.filter(function(thisBulb) {
                                     thisBulb._id == outOutBulb;
                                 }).length == 0)
