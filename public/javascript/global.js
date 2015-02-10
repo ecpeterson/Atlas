@@ -124,7 +124,7 @@ $(document).ready(function() {
         function () { bulbTextNeedsRerender = true; });
 
     // call MathJaX periodically to render the bulb text
-    setInterval(rerenderBulbText, 3000);
+    setInterval(rerenderBulbText, 5000);
 });
 
 // Utility functions ===========================================================
@@ -186,7 +186,7 @@ function restartGraph() {
             })
             .remove();
 
-    node = node.data(graph.nodes) // we're going to reset the node data to this
+    node = node.data(graph.nodes); // we're going to reset the node data to this
     node.enter() // for all incoming nodes...
             .append('g')
                 .attr('class', 'node')
