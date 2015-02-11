@@ -13,7 +13,18 @@ var bulbHistory = [];
 var svg = {};
 var force = {};
 var color = {};
-var graph = { nodes : [], links : []};
+var graph =
+    {
+        nodes : [
+            { name : "Alice" },
+            { name : "Bob" },
+            { name : "Carol" }
+        ],
+        links : [
+            { source : 0, target : 1 },
+            { source : 1, target : 2 }
+        ]
+    };
 var link = {};
 var node = {};
 
@@ -23,7 +34,8 @@ $(document).ready(function() {
     //// Set up the bulb graph
 
     // insert the drawing surface
-    svg = d3.select('#divSVG').append('svg')
+    svg = d3.select('#divSVG')
+        .append('svg:svg')
             .attr('width', width)
             .attr('height', height);
 
@@ -34,8 +46,8 @@ $(document).ready(function() {
               .size([width, height]);
 
     force
-        .nodes(graph.nodes)
-        .links(graph.links)
+        .nodes([])
+        .links([])
         .start();
 
     link = svg.selectAll(".link");
@@ -45,7 +57,7 @@ $(document).ready(function() {
 
     // instruct svg on how to draw arrowheads
     svg.append("defs").selectAll("marker")
-        .data(["suit", "licensing", "resolved"])
+        .data(["suit"])
         .enter()
             .append("marker")
                 .attr("id", function(d) { return d; })
@@ -65,16 +77,11 @@ $(document).ready(function() {
     force.on('tick', drawGraphCallback);
 
     //// Pull down the bulb data
-
-    populateTables();
-
-    // we just got the bulb data; oh well, get it again.
     $.getJSON('/toplevel', function(data) {
         if (data.length > 0) {
             // tell D3 to start running the simulation with the blank tables
             activeBulb = {}; activeBulbId = '';
             selectBulb(null, data[0]._id);
-            restartGraph();
         }
     });
 
@@ -132,39 +139,38 @@ $(document).ready(function() {
 function drawGraphCallback () {
     // update edge positions
     link
-        .attr('x1', function (d) {
-            return d.source.x;
-        })
-        .attr('y1', function (d) {
-            return d.source.y;
-        })
-        .attr('x2', function (d) {
-            return d.target.x;
-        })
-        .attr('y2', function (d) {
-            return d.target.y;
-        });
+        .attr('x1', function (d) { return d.source.x; })
+        .attr('y1', function (d) { return d.source.y; })
+        .attr('x2', function (d) { return d.target.x; })
+        .attr('y2', function (d) { return d.target.y; });
 
         // update circle positions
     d3.selectAll('circle')
-        .attr('cx', function (d) {
-            return d.x;
-        })
-        .attr('cy', function (d) {
-            return d.y;
-        });
+        .attr('cx', function (d) { return d.x; })
+        .attr('cy', function (d) { return d.y; });
 
     // update label positions
     d3.selectAll('text')
-        .attr('x', function (d) {
-            return d.x;
-        })
-        .attr('y', function (d) {
-            return d.y;
-        });
+        .attr('x', function (d) { return d.x; })
+        .attr('y', function (d) { return d.y; });
 }
 
 function restartGraph() {
+    console.log("restartGraph() called.");
+
+    // links come with source and target set to id strings. need to dereference.
+    graph.links.forEach(function(link) {
+        var i;
+        for (i = 0; i < graph.nodes.length; i++) {
+            if (graph.nodes[i]._id == link.source)
+                link.source = i;
+            if (graph.nodes[i]._id == link.target)
+                link.target = i;
+        }
+    });
+
+    
+    console.log("graph.links: " + JSON.stringify(graph.links));
     link = link.data(graph.links); // we're going to reset the link data to this
     link.enter() // for all incoming links...
             .append('line')
@@ -186,35 +192,42 @@ function restartGraph() {
             })
             .remove();
 
+    console.log("graph.nodes: " + JSON.stringify(graph.nodes));
     node = node.data(graph.nodes); // we're going to reset the node data to this
-    node.enter() // for all incoming nodes...
+    var nodeEnter =
+        node.enter() // for all incoming nodes...
             .append('g')
                 .attr('class', 'node')
                 .on('click', function () {
                     d = d3.select(this).node();
                     selectBulb(null, d._id);
                     return;
-                })
+                });
                 // .on('dblclick', function () { return; })
-            .append("circle")
-                .attr('r', 8)
-                .style("full", function (d) {
-                    return "red";
-                })
-            .append("text")
-                .attr("dx", 10)
-                .attr("dy", ".35em")
-                .text(function (d) {
-                    return d.title;
-                })
-                .style("stroke", "black");
+    nodeEnter
+        .append("circle")
+            .attr('r', 8)
+            .style("full", function (d) {
+                return "red";
+            });
+    nodeEnter
+        .append("text")
+            .attr("dx", 10)
+            .attr("dy", ".35em")
+            .text(function (d) {
+                return d.title;
+            });
+
     node.exit() // for all outgoing nodes...
         .transition()
             .duration(4000)
             .style("opacity", 0)
             .remove();
 
-    force.start();
+    force
+        .nodes(graph.nodes)
+        .links(graph.links)
+        .start();   
 }
 
 var bulbTextNeedsRerender = false;
@@ -256,27 +269,6 @@ var rerenderBulbText;
 }
 
 // User-triggerable functions ==================================================
-
-// generates the HTML displaying bulb list
-function populateTables() {
-	// // this is the string we're going to insert into the document later
-	// var liListContent = '';
-
-	// // jQuery AJAX call for JSON
-	// $.getJSON('/toplevel', function(data) {
-	// 	// for each item in our JSON, add a table row to the content structure
-	// 	$.each(data, function() {
- //            liListContent += '<li>';
- //            liListContent += '<a href="#" class="linkShowBulb" rel="' + this._id +
- //                           '" title="Show details">' + this.title + '</a> ';
- //            liListContent += '</li>';
-	// 	});
-
-	// 	// inject this content string into our existing HTML table.
- //        // NOTE: this overwrites whatever was there before.
-	// 	$('#bulbList ul').html(liListContent);
-	// });
-};
 
 // adds a new bulb to the database
 function newBulb(event) {
@@ -395,21 +387,18 @@ function selectBulb(event, bulbId) {
         var historyChain = [];
         // XXX: this history manipulation stuff is desynchronized with with the
         // history manipulation block above. this WILL cause problems.
-        { // CENTER:
-            // add the current bulb to the list of vertices
-            historyChain.push(activeBulb);
-        }
         { // HISTORY and CENTER:
             // start by assembling the incoming history chain
             if (bulbHistory.length > 2)
                 historyChain.push({ _id : "historyDummyNode",
                                     title : "..." });
-            historyChain.concat(bulbHistory.slice(bulbHistory.length-2,
-                                              bulbHistory.length));
+            historyChain = historyChain.concat(
+                bulbHistory.slice(bulbHistory.length-2,
+                                  bulbHistory.length));
             historyChain.push(activeBulb);
 
             // add those bulbs to the vertex collection
-            graph.nodes.concat(historyChain);
+            graph.nodes = graph.nodes.concat(historyChain);
 
             // now iterate through these few vertices to draw in the edges
             var i = 0;
@@ -427,7 +416,7 @@ function selectBulb(event, bulbId) {
                     { ids : activeBulb.outgoingNodes },
                     function(outgoingBulbs) {
                     // insert them as vertices
-                    graph.nodes.push(outgoingBulbs);
+                    graph.nodes = graph.nodes.concat(outgoingBulbs);
 
                     // insert edges from the current bulb to the outgoing bulbs
                     outgoingBulbs.forEach(function (outBulb) {
@@ -439,7 +428,7 @@ function selectBulb(event, bulbId) {
                         // if we can't find outOutBulb's id...
                         outBulb.outgoingNodes.forEach(function (outOutBulb) {
                             if (graph.nodes.filter(function(thisBulb) {
-                                    thisBulb._id == outOutBulb;
+                                    return thisBulb._id == outOutBulb;
                                 }).length == 0)
                                 return; // then just bail.
 
@@ -585,7 +574,6 @@ function deleteBulb(event) {
         if (response.msg)
             alert('Error: ' + response.msg);
         
-        populateTables();
         $('#bulbInfo span').text('');
         $('#bulbInfo input').val('');
         activeBulbId = '';
@@ -619,7 +607,6 @@ function updateBulb(event) {
             return;
         }
 
-        populateTables();
         selectBulb(event, activeBulbId);
     });
 };
