@@ -10,6 +10,13 @@ var activeBulb = {};
 var activeBulbD3 = {};
 var bulbHistory = [];
 
+var clickStates = {
+    SELECT : 'SELECT',
+    LINK : 'LINK',
+    DELINK : 'DELINK'
+};
+var state = clickStates.SELECT;
+
 var svg = {};
 var force = {};
 var color = {};
@@ -131,6 +138,18 @@ $(document).ready(function() {
 
 // Utility functions ===========================================================
 
+function clickBulb(d, i) {
+    switch (state) {
+        case clickStates.SELECT: {
+            selectBulb(null, d._id);
+            return;
+        }
+    }
+
+    console.log("Unhandled click state!");
+    return;
+}
+
 function drawGraphCallback () {
     // update edge positions
     link
@@ -185,10 +204,7 @@ function restartGraph() {
         node.enter()
             .append('g')
                 .attr('class', 'node')
-                .on('click', function (d, i) {
-                    selectBulb(null, d._id);
-                    return;
-                });
+                .on('click', clickBulb);
                 // .on('dblclick', function () { return; })
     nodeg.each(function (d) { console.log(d._id + " entering.");});
     nodeg
@@ -290,7 +306,8 @@ function newBulb(event) {
                 alert('Error: ' + response.msg);
             }
 
-            selectBulb(null, response._id);
+            safelyAddBulbTo(response, graph.nodes);
+            restartGraph();
         }
     );
 };
@@ -690,7 +707,10 @@ function navigateClicked(event) {
         if (path.path.length == 0)
             return;
 
-        selectBulb(null, path.path.pop());
+        $.getJSON('/bulb/' + path.path.pop(), function (bulb) {
+            safelyAddBulbTo(bulb, graph.nodes);
+            restartGraph();
+        });
     });
 }
 
