@@ -15,18 +15,13 @@ var force = {};
 var color = {};
 var graph =
     {
-        nodes : [
-            { name : "Alice" },
-            { name : "Bob" },
-            { name : "Carol" }
-        ],
-        links : [
-            { source : 0, target : 1 },
-            { source : 1, target : 2 }
-        ]
+        nodes : [],
+        links : []
     };
 var link = {};
 var node = {};
+
+var debug = 0;
 
 // DOM Ready ===================================================================
 
@@ -42,7 +37,7 @@ $(document).ready(function() {
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
               .charge(-120) // how forceful the repositioning is
-              .linkDistance(60) // relaxed length of edge springs
+              .linkDistance(90) // relaxed length of edge springs
               .size([width, height]);
 
     force
@@ -118,7 +113,7 @@ $(document).ready(function() {
 
     // when the original parent permalink is clicked, synchronize the node
     $('#bulbInfoParentsOriginalId').on('click', 'a.syncWithOriginal',
-                                      syncBulbWithOriginal);
+                                       syncBulbWithOriginal);
 
     // navigation clicker
     $('a#navigateButton').on('click', navigateClicked);
@@ -144,20 +139,23 @@ function drawGraphCallback () {
         .attr('x2', function (d) { return d.target.x; })
         .attr('y2', function (d) { return d.target.y; });
 
-        // update circle positions
-    d3.selectAll('circle')
-        .attr('cx', function (d) { return d.x; })
-        .attr('cy', function (d) { return d.y; });
-
-    // update label positions
-    d3.selectAll('text')
-        .attr('x', function (d) { return d.x; })
-        .attr('y', function (d) { return d.y; });
+    node
+        .each(function(d, i) {
+            // if we're the highlighted node, then move us to the middle
+            if (d._id == activeBulbId) {
+                d.fixed = false;
+                d.x = d.px = width / 2;
+                d.y = d.py = height / 2;
+                d.fixed = true;
+            } else
+                d.fixed = false;
+        })
+        .attr('transform', function (d) {
+            return "translate(" + d.x + "," + d.y + ")";
+        });
 }
 
 function restartGraph() {
-    console.log("restartGraph() called.");
-
     // links come with source and target set to id strings. need to dereference.
     graph.links.forEach(function(link) {
         var i;
@@ -169,48 +167,40 @@ function restartGraph() {
         }
     });
 
-    
-    console.log("graph.links: " + JSON.stringify(graph.links));
     link = link.data(graph.links); // we're going to reset the link data to this
     link.enter() // for all incoming links...
             .append('line')
                 .attr('class', 'link')
                 .style('marker-end', 'url(#suit)'); // this draws arrowheads
     link.exit() // for all outgoing links...
-            .transition()
-            .duration(4000)
-            .style("opacity", 0)
-            .tween("keepLinksMoving", function (d, i) {
-                var activeLink = d3.select(this);
-                return function (t) {
-                    activeLink
-                        .attr("x1", d.source.x)
-                        .attr("y1", d.source.y)
-                        .attr("x2", d.target.x)
-                        .attr("y2", d.target.y);
-                }
-            })
             .remove();
 
-    console.log("graph.nodes: " + JSON.stringify(graph.nodes));
-    node = node.data(graph.nodes); // we're going to reset the node data to this
-    var nodeEnter =
-        node.enter() // for all incoming nodes...
+    // we're going to reset the node data to this
+    node = node.data(graph.nodes, function (d, i) {
+        console.log("reading node: " + d._id);
+        return d._id;
+    });
+    // for all incoming nodes...
+    var nodeg =
+        node.enter()
             .append('g')
                 .attr('class', 'node')
-                .on('click', function () {
-                    d = d3.select(this).node();
+                .on('click', function (d, i) {
                     selectBulb(null, d._id);
                     return;
                 });
                 // .on('dblclick', function () { return; })
-    nodeEnter
+    nodeg.each(function (d) { console.log(d._id + " entering.");});
+    nodeg
         .append("circle")
             .attr('r', 8)
-            .style("full", function (d) {
+            .style("fill", function (d) {
                 return "red";
-            });
-    nodeEnter
+            })
+            .style("stroke", "black")
+            .attr("dx", 0)
+            .attr("dy", 0);
+    nodeg
         .append("text")
             .attr("dx", 10)
             .attr("dy", ".35em")
@@ -218,7 +208,9 @@ function restartGraph() {
                 return d.title;
             });
 
-    node.exit() // for all outgoing nodes...
+    // for all outgoing nodes...
+    node.exit()
+            .each(function(d) { console.log(d._id + " exiting."); })
         .transition()
             .duration(4000)
             .style("opacity", 0)
@@ -227,7 +219,7 @@ function restartGraph() {
     force
         .nodes(graph.nodes)
         .links(graph.links)
-        .start();   
+        .start();
 }
 
 var bulbTextNeedsRerender = false;
@@ -266,6 +258,20 @@ var rerenderBulbText;
 
         return;
     }
+}
+
+function safelyAddBulbTo(bulb, array) {
+    var i;
+
+    for (i = 0; i < array.length; i++) {
+        if (array[i]._id == bulb._id) {
+            array[i] = bulb;
+            return array;
+        }
+    }
+
+    array.push(bulb);
+    return array;
 }
 
 // User-triggerable functions ==================================================
@@ -311,15 +317,13 @@ function drawHistory() {
         }
 
         // otherwise, the array has a head node.
-        var headId = array.shift();
-        $.getJSON('/bulb/' + headId, function (headBulb) {
-            if (historyString)
-                historyString += ' : ';
-            historyString += '<a href="#" class="linkShowBulb" rel="' +
-                             headBulb._id + '">' + headBulb.title + '</a>';
+        var headBulb = array.shift();
+        if (historyString)
+            historyString += ' : ';
+        historyString += '<a href="#" class="linkShowBulb" rel="' +
+                         headBulb._id + '">' + headBulb.title + '</a>';
 
-            aux(array);
-        });
+        aux(array);
     }
 
     aux(historyCopy);
@@ -341,31 +345,16 @@ function selectBulb(event, bulbId) {
         bulbHistory = [];
         drawHistory();
     } else {
-        // we have to make a more complicated decision.
-        var oldActiveBulb = activeBulb;
-        $.getJSON('/bulb/' + oldActiveBulb._id + '/children', function (children) {
-            // scrap all the other data and just keep the ids
-            children = children.map(function (child) {
-                return child._id;
-            });
+        // we're in an actual state, so push the bulb into the history array.
+        bulbHistory.push(activeBulb);
 
-            // if the new bulb is one back from where we just were...
-            if (bulbHistory[bulbHistory.length-1] == bulbId)
-                // ... then pop it off, but leave the rest of the history intact
-                bulbHistory.pop();
-            // or, if the new bulb is related to the current bulb...
-            else if ((oldActiveBulb.outgoingNodes &&
-                      oldActiveBulb.outgoingNodes.indexOf(bulbId) > -1) ||
-                    (children && children.indexOf(bulbId) > -1) ||
-                    (oldActiveBulb.parentContainer == bulbId))
-                // ... then push the current bulb into the history array
-                bulbHistory.push(oldActiveBulb._id);
-            else
-                // ... otherwise, clear the history array.
-                bulbHistory = [];
+        // TODO: there should also be a mechanism for going 'back' into history,
+        // which would have the effect of popping items off of bulbHistory.
 
-            drawHistory();
-        });
+        // also if we click on a bulb unrelated to the present bulb, this should
+        // reset our history to the null array.
+
+        drawHistory();
     }
 
     // in any case, set the current bulb to be the new bulb.
@@ -385,8 +374,6 @@ function selectBulb(event, bulbId) {
         graph.nodes = [];
         graph.links = [];
         var historyChain = [];
-        // XXX: this history manipulation stuff is desynchronized with with the
-        // history manipulation block above. this WILL cause problems.
         { // HISTORY and CENTER:
             // start by assembling the incoming history chain
             if (bulbHistory.length > 2)
@@ -396,6 +383,15 @@ function selectBulb(event, bulbId) {
                 bulbHistory.slice(bulbHistory.length-2,
                                   bulbHistory.length));
             historyChain.push(activeBulb);
+
+            var i, j;
+            for (i = historyChain.length; i >= 0; i--)
+                for (j = i + 1; j < historyChain.length; j++) {
+                    if (historyChain[i]._id == historyChain[j]._id) {
+                        historyChain.splice(i, 1);
+                        break;
+                    }
+                }
 
             // add those bulbs to the vertex collection
             graph.nodes = graph.nodes.concat(historyChain);
@@ -415,8 +411,12 @@ function selectBulb(event, bulbId) {
             $.post( '/graphdata',
                     { ids : activeBulb.outgoingNodes },
                     function(outgoingBulbs) {
+                    
                     // insert them as vertices
-                    graph.nodes = graph.nodes.concat(outgoingBulbs);
+                    var i;
+                    for (i = 0; i < outgoingBulbs.length; i++)
+                        graph.nodes = safelyAddBulbTo(outgoingBulbs[i],
+                                                      graph.nodes);
 
                     // insert edges from the current bulb to the outgoing bulbs
                     outgoingBulbs.forEach(function (outBulb) {
@@ -437,6 +437,7 @@ function selectBulb(event, bulbId) {
                                                target : outOutBulb });
                         });
                     });
+                    
 
                     // finally, call the restart() function to push the changes
                     // to the graph. ideally this would be done two levels up,
@@ -444,9 +445,6 @@ function selectBulb(event, bulbId) {
                     // have to do it here.
 
                     restartGraph();
-
-                    // TODO: finally, you should place some of these nodes in
-                    // fixed positions.
                 }
             );
         }
