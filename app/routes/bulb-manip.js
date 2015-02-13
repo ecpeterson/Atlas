@@ -8,7 +8,7 @@ module.exports = function(app) {
 	app.get('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -30,7 +30,7 @@ module.exports = function(app) {
 	app.get('/bulb/:id/text', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -50,7 +50,7 @@ module.exports = function(app) {
 
 	app.get('/bulb/:id/path', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -77,7 +77,7 @@ module.exports = function(app) {
 
 	app.get('/bulb/:id/children', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -91,7 +91,7 @@ module.exports = function(app) {
 
 				Bulb.find({ parentContainer : req.params.id },
 						function(err, bulbs) {
-					if (err) {
+					if (err || !bulbs) {
 						res.send({ msg : err });
 						return;
 					}
@@ -107,7 +107,7 @@ module.exports = function(app) {
 	app.delete('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
 			// check for errors
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -131,7 +131,7 @@ module.exports = function(app) {
 	// UPDATE INDIVIDUAL BULB ==================================================
 	app.put('/bulb/:id', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function(err, bulb) {
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -184,7 +184,7 @@ module.exports = function(app) {
 	app.get('/toplevel', app.isLoggedIn, function(req, res) {
 		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
 			// check for errors
-			if (err) {
+			if (err || !bulbs) {
 				console.log('error: ' + err);
 				res.send({ msg : err });
 				return;
@@ -237,7 +237,7 @@ module.exports = function(app) {
 			var bulbId = bulbList.pop();
 			Bulb.findById(bulbId, function (err, bulb) {
 				// check for errors: can't find the bulb or can't read it
-				if (err) {
+				if (err || !bulb) {
 					resultList.push({ _id : bulbId,
 									  title : 'Database query failed with error'
 									          + err + '.',
@@ -269,7 +269,7 @@ module.exports = function(app) {
 	// MAKES A COPY OF A NONCOLLABORATIVELY SHARED NODE ========================
 	app.post('/bulb/:id/copy', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function (err, bulb) {
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -305,7 +305,7 @@ module.exports = function(app) {
 	// SYNCHRONIZES A REPLICATED BULB WITH THE ORIGINAL ========================
 	app.post('/bulb/:id/sync', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function (err, dupBulb) {
-			if (err) {
+			if (err || !dupBulb) {
 				res.send({ msg : err });
 				return;
 			}
@@ -322,7 +322,7 @@ module.exports = function(app) {
 				}
 
 				Bulb.findById(dupBulb.parentOriginal, function(err, bulb) {
-					if (err) {
+					if (err || !bulb) {
 						res.send({ msg : err });
 						return;
 					}
@@ -356,7 +356,7 @@ module.exports = function(app) {
 	// BOUNCES TO THE DATA OF THE ORIGINAL OWNER OF THE NODE ===================
 	app.get('/bulb/:id/originalowner', app.isLoggedIn, function(req, res) {
 		Bulb.findById(req.params.id, function (err, bulb) {
-			if (err) {
+			if (err || !bulb) {
 				res.send({ msg : err });
 				return;
 			}

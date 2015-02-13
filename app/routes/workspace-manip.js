@@ -13,7 +13,7 @@ module.exports = function(app) {
 	// REQUEST LIST OF TOPLEVEL WORKSPACE CHILD NODES ==========================
 	app.get('/workspace/:id/children', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function (err, workspace) {
-			if (err) {
+			if (err || !workspace) {
 				res.send({ msg : err });
 				return;
 			}
@@ -38,7 +38,7 @@ module.exports = function(app) {
 	// REQUEST INDIVIDUAL WORKSPACE DATA =======================================
 	app.get('/workspace/:id', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function (err, workspace) {
-			if (err) {
+			if (err || !workspace) {
 				res.send({ msg : err });
 				return;
 			}
@@ -56,7 +56,7 @@ module.exports = function(app) {
 	// MODIFY WORKSPACE ========================================================
 	app.put('/workspace/:id', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function(err, workspace) {
-			if (err) {
+			if (err || !workspace) {
 				res.send({ msg : err });
 				return;
 			}
@@ -88,7 +88,7 @@ module.exports = function(app) {
 	// DELETE WORKSPACE ========================================================
 	app.delete('/workspace/:id', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function(err, workspace) {
-			if (err) {
+			if (err || !workspace) {
 				res.send({ msg : err });
 				return;
 			}
@@ -124,7 +124,7 @@ module.exports = function(app) {
 	// REQUEST LIST OF WORKSPACES ACTIVE USER PARTICIPATES IN ==================
 	app.get('/workspaces', app.isLoggedIn, function(req, res) {
 		Workspace.find({ users : req.user._id }, function(err, workspaces) {
-			if (err) {
+			if (err || !workspaces) {
 				res.send({ msg : err });
 				return;
 			}
