@@ -586,11 +586,20 @@ function deleteBulb(event) {
     }).done(function(response) {
         if (response.msg)
             alert('Error: ' + response.msg);
-        
-        $('#bulbInfo span').text('');
-        $('#bulbInfo input').val('');
+
         activeBulbId = '';
         activeBulb = {};
+
+        if (bulbHistory.length > 0) {
+            selectBulb(null, bulbHistory[bulbHistory.length-1]._id);
+        } else {
+            $.getJSON('/toplevel', function(data) {
+                if (data.length > 0) {
+                    activeBulb = {}; activeBulbId = '';
+                    selectBulb(null, data[0]._id);
+                }
+            });
+        }
     });
 };
 
