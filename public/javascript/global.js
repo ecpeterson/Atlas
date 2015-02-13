@@ -107,12 +107,6 @@ $(document).ready(function() {
     // when the 'update' button is clicked, call the JS routine below
     $('#bulbInfo').on('click', 'a.linkUpdateBulb', updateBulb);
 
-    // when the [+] button is clicked, add a link
-    $('a.bulbInfoAddOutgoingRef').on('click', '', addLink);
-
-    // when the [-] button is clicked, remove the link
-    $('#bulbInfoOutgoingNodes').on('click', 'li a.linkDeleteLink', removeLink);
-
     // when the parent permalinks are clicked, let the client choose the parents
     $('a.parentWorkspacePicker').on('click', pickParentWorkspace);
     $('a.parentContainerPicker').on('click', pickParentContainer);
@@ -128,6 +122,20 @@ $(document).ready(function() {
     // duplicate node button
     $('a#duplicateNode').on('click', duplicateNodeFn);
 
+    // hook up the graph state buttons
+    $('a#selectButton').on('click', function(event) {
+        if (event) event.preventDefault();
+        state = clickStates.SELECT;
+    });
+    $('a#linkButton').on('click', function() {
+        if (event) event.preventDefault();
+        state = clickStates.LINK;
+    });
+    $('a#unlinkButton').on('click', function() {
+        if (event) event.preventDefault();
+        state = clickStates.UNLINK;
+    });
+
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
         function () { bulbTextNeedsRerender = true; });
@@ -142,6 +150,16 @@ function clickBulb(d, i) {
     switch (state) {
         case clickStates.SELECT: {
             selectBulb(null, d._id);
+            return;
+        }
+
+        case clickStates.LINK: {
+            addLink(d._id);
+            return;
+        }
+
+        case clickStates.UNLINK: {
+            removeLink(d._id);
             return;
         }
     }
@@ -470,27 +488,6 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
 
-        // for the outgoing nodes
-        $('#bulbInfoOutgoingNodes').html('');
-        $.each(response.outgoingNodes, function() {
-            $.getJSON('/bulb/' + this, function(listBulb) {
-                var listContent = '';
-                listContent += '<li>';
-                listContent += '<a href="#" class="linkShowBulb" rel="' +
-                               listBulb._id + '" title="Show details">' +
-                               listBulb.title + '</a> ';
-                listContent += '<a href="#" class="linkDeleteLink" rel="' +
-                               listBulb._id +
-                               '" title="Delete Link"> [ - ] </a> ';
-                listContent += '</li>';
-                $('#bulbInfoOutgoingNodes').append(listContent);
-
-                return;
-            });
-
-            return;
-        });
-
         // for the contained nodes
         $("#bulbInfoContainsNodes").html('');
         $.getJSON('/bulb/' + activeBulbId + '/children', function (children) {
@@ -629,46 +626,28 @@ function updateBulb(event) {
             return;
         }
 
-        selectBulb(event, activeBulbId);
+        selectBulb(null, activeBulbId);
     });
 };
 
-function addLink(event) {
-    if (event)
-        event.preventDefault();
+function addLink(targetId) {
+    // XXX: shouldn't be able to link to nodes which have us in their path.
+    if ((targetId == activeBulbId) || // can't select ourselves
+        (activeBulb.outgoingNodes.indexOf(targetId) > -1)) // can't repeat
+        return;
 
-    launchPathSelector(event.target, function (path) {
-        // can't do NOPs
-        if (!activeBulbId || !path)
-            return;
+    activeBulb.outgoingNodes.push(targetId);
+    state = clickStates.SELECT;
 
-        // can't link to a workspace
-        if (path.path.length == 0)
-            return;
-
-        var targetId = path.path.pop();
-
-        // XXX: shouldn't be able to link to nodes which have us in their path.
-        if ((targetId == activeBulbId) || // can't select ourselves
-            (activeBulb.outgoingNodes.indexOf(targetId) > -1)) // can't repeat
-            return;
-
-        activeBulb.outgoingNodes.push(targetId);
-
-        updateBulb(null);
-    });
+    updateBulb(null);
 }
 
-function removeLink(event) {
-    if (event)
-        event.preventDefault();
-
-    targetId = $(this).attr('rel');
-
+function removeLink(targetId) {
     activeBulb.outgoingNodes = activeBulb.outgoingNodes.filter(function (b) {
         return (b != targetId);
     });
 
+    state = clickStates.SELECT;
     updateBulb(null);
 }
 
