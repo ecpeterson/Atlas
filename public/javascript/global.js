@@ -228,7 +228,7 @@ function restartGraph() {
     node.exit()
             .each(function(d) { console.log(d._id + " exiting."); })
         .transition()
-            .duration(4000)
+            .duration(1000)
             .style("opacity", 0)
             .remove();
 
@@ -313,8 +313,6 @@ function newBulb(event) {
 };
 
 function drawHistory() {
-    // history is an array of bulbIds. need to grab their titles and assemble
-    // a string out of them.
     var historyDisplay = $('#historyDisplay');
     var historyCopy = [];
     var historyString = '';
