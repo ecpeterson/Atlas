@@ -242,7 +242,7 @@ module.exports = function(app) {
 									  title : 'Database query failed with error'
 									          + err + '.',
 									  outgoingNodes : [] });
-					return;
+					return aux(bulbList, resultList);
 				}
 
 				bulb.hasWriteAccess(req.user._id, function (ans) {
