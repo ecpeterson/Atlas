@@ -176,6 +176,11 @@ function drawGraphCallback () {
         .attr('x2', function (d) { return d.target.x; })
         .attr('y2', function (d) { return d.target.y; });
 
+    // update circle positions
+    var shortHistory = bulbHistory.slice(-2).map(function (b) {
+        return b._id;
+    });
+
     node
         .each(function(d, i) {
             // if we're the highlighted node, then move us to the middle
@@ -184,11 +189,59 @@ function drawGraphCallback () {
                 d.x = d.px = width / 2;
                 d.y = d.py = height / 2;
                 d.fixed = true;
-            } else
+                return;
+            }
+
+            // if we live in the history, then put us into the up-left chain
+            if (d._id == 'historyDummyNode') {
                 d.fixed = false;
+                d.x = d.px = width / 8;
+                d.y = d.py = height / 8;
+                d.fixed = true;
+                return;
+            }
+            var forwardIndex = shortHistory.indexOf(d._id);
+            if (forwardIndex != -1) {
+                if (shortHistory.length - forwardIndex == 2) {
+                    d.fixed = false;
+                    d.x = d.px = width / 4;
+                    d.y = d.py = height / 4;
+                    d.fixed = true;
+                    return;
+                } else if (shortHistory.length - forwardIndex == 1) {
+                    d.fixed = false;
+                    d.x = d.px = width * 3 / 8;
+                    d.y = d.py = height * 3 / 8;
+                    d.fixed = true;
+                    return;
+                }
+            }
+            
+            // default:
+            d.fixed = false;
+            return;
         })
         .attr('transform', function (d) {
             return "translate(" + d.x + "," + d.y + ")";
+        });
+
+    // control circle colors
+    node.selectAll('circle')
+        .style('fill', function (d) {
+            if (d._id == activeBulbId)
+                return 'red';
+
+            if (shortHistory.indexOf(d._id) != -1 ||
+                d._id == 'historyDummyNode')
+                return '#4488ff';
+
+            return 'blue';
+        })
+        .style('opacity', function (d) {
+            if (d._id == 'historyDummyNode' ||
+                shortHistory.indexOf(d._id) != -1)
+                return 0.3;
+            return 1.0;
         });
 }
 
