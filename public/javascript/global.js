@@ -214,7 +214,6 @@ function restartGraph() {
 
     // we're going to reset the node data to this
     node = node.data(graph.nodes, function (d, i) {
-        console.log("reading node: " + d._id);
         return d._id;
     });
     // for all incoming nodes...
@@ -224,7 +223,6 @@ function restartGraph() {
                 .attr('class', 'node')
                 .on('click', clickBulb);
                 // .on('dblclick', function () { return; })
-    nodeg.each(function (d) { console.log(d._id + " entering.");});
     nodeg
         .append("circle")
             .attr('r', 8)
@@ -244,7 +242,6 @@ function restartGraph() {
 
     // for all outgoing nodes...
     node.exit()
-            .each(function(d) { console.log(d._id + " exiting."); })
         .transition()
             .duration(1000)
             .style("opacity", 0)
