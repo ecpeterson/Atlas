@@ -123,7 +123,10 @@ $(document).ready(function() {
     $('a#duplicateNode').on('click', duplicateNodeFn);
 
     $('a#jostleButton').on('click', function (event) {
-        if (event) event.preventDefault(); force.resume();
+        if (event) event.preventDefault();
+        node.each(function (d) { d.x = Math.random() * width;
+                                 d.y = Math.random() * height;
+                                 force.resume(); });
     });
 
     // hook up the graph state buttons
