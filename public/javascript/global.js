@@ -43,8 +43,8 @@ $(document).ready(function() {
 
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
-              .charge(-120) // how forceful the repositioning is
-              .linkDistance(90) // relaxed length of edge springs
+              .charge(-180) // how forceful the repositioning is
+              .linkDistance(120) // relaxed length of edge springs
               .size([width, height]);
 
     force
