@@ -244,6 +244,10 @@ function drawGraphCallback () {
                 d._id == 'historyDummyNode')
                 return '#4488ff';
 
+            if (activeBulb.outgoingNodes &&
+                activeBulb.outgoingNodes.indexOf(d._id) != -1)
+                return 'green';
+
             return 'blue';
         })
         .style('opacity', function (d) {
@@ -467,8 +471,10 @@ function selectBulb(event, bulbId) {
             // grab the essential data of outgoing bulbs from the current bulb
             $.post( '/graphdata',
                     { ids : activeBulb.outgoingNodes },
-                    function(outgoingBulbs) {
-                    
+                function(outgoingBulbs) {
+            $.getJSON('/bulb/' + activeBulbId + '/children',
+                function(childBulbs) {
+                    outgoingBulbs = outgoingBulbs.concat(childBulbs);
                     // insert them as vertices
                     var i;
                     for (i = 0; i < outgoingBulbs.length; i++)
@@ -502,8 +508,8 @@ function selectBulb(event, bulbId) {
                     // have to do it here.
 
                     restartGraph();
-                }
-            );
+                });
+            });
         }
 
         // update the active bulb info fields
