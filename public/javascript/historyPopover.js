@@ -10,8 +10,8 @@ var launchHistorySelector;  // function(DOMElement, bulbHistory, callback)
 
 // Globals =====================================================================
 
-var popup;
-var popupText;
+var historyPopup;
+var historyPopupText;
 var holdCallback;
 var popoverMode = '';
 
@@ -26,17 +26,17 @@ $(document).ready(function() {
     //  </div>
 
     $('body').append('<div class="history-popup" style="position: absolute; z-index:1000; background:#fff;"></div>');
-    popup = $('div.history-popup');
-    popup.hide();
+    historyPopup = $('div.history-popup');
+    historyPopup.hide();
 
-    popup.append('<div class="history-popup-body"></div>');
-    popupText = $('div.history-popup-body');
+    historyPopup.append('<div class="history-popup-body"></div>');
+    historyPopupText = $('div.history-popup-body');
 
-    popup.append('<button class="history-popup-close-button">Cancel</button>');
+    historyPopup.append('<button class="history-popup-close-button">Cancel</button>');
     $('button.history-popup-close-button').click(closeClick);
 
     // set up click hooks for the to-be-created popover links
-    $('div.history-popup-body').on('click', 'ul li a.linkPopoverSelectBulb',
+    $('div.history-popup-body').on('click', 'ul li a.linkPopoverClickBulb',
                                    historyClickBulb);
 });
 
@@ -46,7 +46,7 @@ function historyClickBulb(event) {
 
     var bulbId = $(this).attr('rel');
 
-    popup.hide();
+    historyPopup.hide();
 
     holdCallback(bulbId);
 }
@@ -55,7 +55,7 @@ function closeClick(event) {
     if (event)
         event.preventDefault();
 
-    popup.hide();
+    historyPopup.hide();
 
     // callback never gets executed.
 }
@@ -67,12 +67,7 @@ function launchHistorySelector(DOMElement, bulbHistory, callback) {
     var jQElement = $(DOMElement);
     var offset = jQElement.offset();
     offset.left += jQElement.width();
-    popup.css(offset);
-
-    // initialize the state of the popover:
-    // set the background path object to empty.
-    backgroundPath = {  workspace : '',
-                        path : [] };
+    historyPopup.css(offset);
 
     // do the initial render
     var historyCopy = [];
@@ -88,8 +83,8 @@ function launchHistorySelector(DOMElement, bulbHistory, callback) {
             if (historyString)
                 historyString += '</li>';
             historyString += '<li>Current</li></ul>';
-            popupText.html(historyString);
-            popup.show();
+            historyPopupText.html(historyString);
+            historyPopup.show();
             return;
         }
 
@@ -97,7 +92,7 @@ function launchHistorySelector(DOMElement, bulbHistory, callback) {
         var headBulb = array.shift();
         if (historyString)
             historyString += '</li>';
-        historyString += '<li><a href="#" class="linkPopoverSelectBulb" rel="' +
+        historyString += '<li><a href="#" class="linkPopoverClickBulb" rel="' +
                          headBulb._id + '">' + headBulb.title + '</a>';
 
         aux(array);
