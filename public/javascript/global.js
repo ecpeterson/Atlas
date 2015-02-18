@@ -122,6 +122,10 @@ $(document).ready(function() {
     // duplicate node button
     $('a#duplicateNode').on('click', duplicateNodeFn);
 
+    $('a#jostleButton').on('click', function (event) {
+        if (event) event.preventDefault(); force.resume();
+    });
+
     // hook up the graph state buttons
     $('a#selectButton').on('click', function(event) {
         if (event) event.preventDefault();
