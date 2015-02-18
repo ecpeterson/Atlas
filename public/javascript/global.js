@@ -147,6 +147,15 @@ $(document).ready(function() {
 // Utility functions ===========================================================
 
 function clickBulb(d, i) {
+    if (d._id == 'historyDummyNode') {
+        // clicking on the ... node has only one effect: it shows the history
+        // popover, which in turn calls selectBulb.
+        launchHistorySelector(this, bulbHistory, function (bulbId) {
+            selectBulb(null, bulbId);
+        });
+        return;
+    }
+
     switch (state) {
         case clickStates.SELECT: {
             selectBulb(null, d._id);
@@ -380,38 +389,6 @@ function newBulb(event) {
     );
 };
 
-function drawHistory() {
-    var historyDisplay = $('#historyDisplay');
-    var historyCopy = [];
-    var historyString = '';
-
-    if (bulbHistory)
-        historyCopy = bulbHistory.slice();
-
-    var aux;
-
-    aux = function (array) {
-        if (array.length == 0) {
-            if (historyString)
-                historyString += ' : ';
-            historyString += 'Current';
-            historyDisplay.html(historyString);
-            return;
-        }
-
-        // otherwise, the array has a head node.
-        var headBulb = array.shift();
-        if (historyString)
-            historyString += ' : ';
-        historyString += '<a href="#" class="linkShowBulb" rel="' +
-                         headBulb._id + '">' + headBulb.title + '</a>';
-
-        aux(array);
-    }
-
-    aux(historyCopy);
-}
-
 function selectBulb(event, bulbId) {
     if (event)
         event.preventDefault();
@@ -426,7 +403,6 @@ function selectBulb(event, bulbId) {
     } else if (!activeBulbId) {
         // this is the initial state, so initialize.
         bulbHistory = [];
-        drawHistory();
     } else {
         // we're in an actual state, so push the bulb into the history array.
         bulbHistory.push(activeBulb);
@@ -436,8 +412,6 @@ function selectBulb(event, bulbId) {
 
         // also if we click on a bulb unrelated to the present bulb, this should
         // reset our history to the null array.
-
-        drawHistory();
     }
 
     // in any case, set the current bulb to be the new bulb.
