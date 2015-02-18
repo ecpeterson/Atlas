@@ -33,7 +33,7 @@ $(document).ready(function() {
     historyPopupText = $('div.history-popup-body');
 
     historyPopup.append('<button class="history-popup-close-button">Cancel</button>');
-    $('button.history-popup-close-button').click(closeClick);
+    $('button.history-popup-close-button').click(historyCloseClick);
 
     // set up click hooks for the to-be-created popover links
     $('div.history-popup-body').on('click', 'ul li a.linkPopoverClickBulb',
@@ -51,7 +51,7 @@ function historyClickBulb(event) {
     holdCallback(bulbId);
 }
 
-function closeClick(event) {
+function historyCloseClick(event) {
     if (event)
         event.preventDefault();
 
