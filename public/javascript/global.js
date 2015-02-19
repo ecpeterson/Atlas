@@ -286,9 +286,7 @@ function restartGraph() {
             .remove();
 
     // we're going to reset the node data to this
-    node = node.data(graph.nodes, function (d, i) {
-        return d._id;
-    });
+    node = node.data(graph.nodes, function (d, i) { return d._id });
     // for all incoming nodes...
     var nodeg =
         node.enter()
@@ -323,6 +321,12 @@ function restartGraph() {
             .duration(1000)
             .style("opacity", 0)
             .remove();
+
+    // for all nodes, regardless of transition...
+    node
+        .each(function (d) {
+            d3.select(this).select('text').text(d.title)
+        });
 
     force
         .nodes(graph.nodes)
