@@ -239,13 +239,13 @@ module.exports = function(app) {
 				// check for errors: can't find the bulb or can't read it
 				if (err || !bulb) {
 					resultList.push({ _id : bulbId,
-									  title : 'Database query failed with error'
+									  title : 'Query failed with error '
 									          + err + '.',
 									  outgoingNodes : [] });
 					return aux(bulbList, resultList);
 				}
 
-				bulb.hasWriteAccess(req.user._id, function (ans) {
+				bulb.hasReadAccess(req.user._id, function (ans) {
 					if (!ans) {
 						resultList.push({ _id : bulbId,
 							title : 'Read access forbidden.',

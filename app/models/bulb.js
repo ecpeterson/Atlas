@@ -22,51 +22,34 @@ var bulbSchema = mongoose.Schema({
 
 // cf. app/models/user.js for how to attach methods to a bulb object
 
-bulbSchema.methods.hasReadAccess = function(user_id, callback) {
-	var Workspace = this.model('Workspace');
-	
-	// simple ownership check
-	if (this.ownerId == user_id)
-		return callback(true);
-
-	// check the path to see if we share a workspace
-	this.findPath(function (path) {
-		if (path.workspace) {
-			Workspace.findById(path.workspace, function (err, workspace) {
-				if (err)
-					return;
-
-				if (workspace.hasAccess(user_id))
-					return callback(true);
-			});
-		} else
-			// we don't have access.
-			return callback(false);
-	});
-};
-
 bulbSchema.methods.hasWriteAccess = function(user_id, callback) {
 	var Workspace = this.model('Workspace');
 
 	// simple ownership check
-	if (this.ownerId == user_id)
+	if (this.ownerId == user_id) {
 		return callback(true);
+	}
 
 	// check the path to see if we share a workspace
 	this.findPath(function (path) {
 		if (path.workspace) {
 			Workspace.findById(path.workspace, function (err, workspace) {
-				if (err)
-					return;
+				if (err) // default value: no access.
+					return callback(false);
 
-				if (workspace.hasAccess(user_id))
+				if (workspace.hasAccess(user_id)) {
 					return callback(true);
+				}
 			});
-		} else
+		} else {
 			// we don't have access.
 			return callback(false);
+		}
 	});
 };
+
+// this could potentially be different at some point in the future.
+bulbSchema.methods.hasReadAccess = bulbSchema.methods.hasWriteAccess;
 
 bulbSchema.methods.findPath = function(callback) {
 	var Bulb = this.model('Bulb');
@@ -75,8 +58,9 @@ bulbSchema.methods.findPath = function(callback) {
 				   path : [] };
 
 	var aux = function (bulb, result) {
-		if (!bulb)
+		if (!bulb) {
 			return callback(result);
+		}
 
 		// prepend this bulb to the path we're building
 		result.path.unshift(bulb._id);
@@ -89,7 +73,10 @@ bulbSchema.methods.findPath = function(callback) {
 
 		// if we don't have a workspace, maybe we have a parent container
 		if (bulb.parentContainer) {
-			return Bulb.findById(bulb.parentContainer, function (newBulb) {
+			return Bulb.findById(new mongoose.Types.ObjectId(bulb.parentContainer),
+					function (err, newBulb) {
+				if (err) // we did our best.
+					return callback(result);
 				return aux(newBulb, result);
 			});
 		}
