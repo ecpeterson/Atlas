@@ -76,8 +76,8 @@ bulbSchema.methods.findPath = function(callback) {
 
 	var aux = function (bulb, result) {
 		if (!bulb)
-			return result;
-		
+			return callback(result);
+
 		// prepend this bulb to the path we're building
 		result.path.unshift(bulb._id);
 
