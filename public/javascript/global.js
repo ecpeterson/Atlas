@@ -129,6 +129,12 @@ $(document).ready(function() {
                                  force.resume(); });
     });
 
+    $('a#clearHistoryButton').on('click', function (event) {
+        if (event) event.preventDefault();
+        bulbHistory = [];
+        selectBulb(null, activeBulbId);
+    });
+
     // hook up the graph state buttons
     $('a#selectButton').on('click', function(event) {
         if (event) event.preventDefault();
