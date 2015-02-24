@@ -122,6 +122,10 @@ $(document).ready(function() {
     // duplicate node button
     $('a#duplicateNode').on('click', duplicateNodeFn);
 
+    // introduce toplevel nodes btuton
+    $('a#toplevelButton').on('click', toplevelButtonFn);
+
+    // jostle nodes button
     $('a#jostleButton').on('click', function (event) {
         if (event) event.preventDefault();
         node.each(function (d) { d.x = Math.random() * width;
@@ -383,7 +387,7 @@ function safelyAddBulbTo(bulb, array) {
 
     for (i = 0; i < array.length; i++) {
         if (array[i]._id == bulb._id) {
-            array[i] = bulb;
+            // array[i] = bulb; // XXX: I don't know if this is necessary.
             return array;
         }
     }
@@ -393,6 +397,31 @@ function safelyAddBulbTo(bulb, array) {
 }
 
 // User-triggerable functions ==================================================
+
+function toplevelButtonFn(event) {
+    if (event)
+        event.preventDefault();
+
+    function addNodesWithoutEdges (bulbs) {
+        // add them safely to the graph.
+        bulbs.forEach(function (bulb) {
+            safelyAddBulbTo(bulb, graph.nodes);
+        });
+
+        restartGraph();
+    };
+
+    launchWorkspaceSelector(event.target, function (path) {
+        if (path.workspace) {
+            // find the child nodes for this workspace.
+            $.getJSON('/workspace/' + path.workspace + '/children',
+                addNodesWithoutEdges);
+        } else {
+            // we picked the toplevel workspace. call /toplevel.
+            $.getJSON('/toplevel', addNodesWithoutEdges);
+        }
+    });
+}
 
 // adds a new bulb to the database
 function newBulb(event) {
