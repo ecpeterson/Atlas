@@ -12,8 +12,12 @@ var bulbHistory = [];
 
 var clickStates = {
     SELECT : 'SELECT',
-    LINK : 'LINK',
-    DELINK : 'DELINK'
+    LINKTO : 'LINKTO',
+    DELINKTO : 'DELINKTO',
+    LINKFROM : 'LINKFROM',
+    DELINKFROM : 'DELINKFROM',
+    POSSESS : 'POSSESS',
+    DEPOSSESS : 'DEPOSSESS'
 };
 var state = clickStates.SELECT;
 
@@ -140,18 +144,19 @@ $(document).ready(function() {
     });
 
     // hook up the graph state buttons
-    $('a#selectButton').on('click', function(event) {
-        if (event) event.preventDefault();
-        state = clickStates.SELECT;
-    });
-    $('a#linkButton').on('click', function() {
-        if (event) event.preventDefault();
-        state = clickStates.LINK;
-    });
-    $('a#unlinkButton').on('click', function() {
-        if (event) event.preventDefault();
-        state = clickStates.UNLINK;
-    });
+    function setClickState(newState) {
+        return function (event) {
+            if (event) event.preventDefault();
+            state = newState;
+        }
+    };
+    $('a#selectButton').on('click', setClickState(clickStates.SELECT));
+    $('a#linkToButton').on('click', setClickState(clickStates.LINKTO));
+    $('a#unlinkToButton').on('click', setClickState(clickStates.DELINKTO));
+    $('a#linkFromButton').on('click', setClickState(clickStates.LINKFROM));
+    $('a#unlinkFromButton').on('click', setClickState(clickStates.DELINKFROM));
+    $('a#possessButton').on('click', setClickState(clickStates.POSSESS));
+    $('a#depossessButton').on('click', setClickState(clickStates.DEPOSSESS));
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -179,19 +184,47 @@ function clickBulb(d, i) {
             return;
         }
 
-        case clickStates.LINK: {
+        case clickStates.LINKTO: {
             addLink(d._id);
+            state = clickStates.SELECT;
             return;
         }
 
-        case clickStates.UNLINK: {
+        case clickStates.DELINKTO: {
             removeLink(d._id);
+            state = clickStates.SELECT;
+            return;
+        }
+
+        case clickStates.LINKFROM: {
+            addLinkFrom(d._id);
+            state = clickStates.SELECT;
+            return;
+        }
+
+        case clickStates.DELINKFROM: {
+            removeLinkFrom(d._id);
+            state = clickStates.SELECT;
+            return;
+        }
+
+        case clickStates.POSSESS: {
+            takePossession(d._id);
+            state = clickStates.SELECT;
+            return;
+        }
+
+        case clickStates.DEPOSSESS: {
+            releasePossession(d._id);
+            state = clickStates.SELECT;
+            return;
+        }
+
+        default: {
+            console.log("Unhandled click state!");
             return;
         }
     }
-
-    console.log("Unhandled click state!");
-    return;
 }
 
 function drawGraphCallback () {
@@ -523,18 +556,18 @@ function selectBulb(event, bulbId) {
             // grab the essential data of outgoing bulbs from the current bulb
             $.post( '/graphdata',
                     { ids : activeBulb.outgoingNodes },
-                function(outgoingBulbs) {
+                function(outgoingNodes) {
             $.getJSON('/bulb/' + activeBulbId + '/children',
                 function(childBulbs) {
-                    outgoingBulbs = outgoingBulbs.concat(childBulbs);
+                    outgoingNodes = outgoingNodes.concat(childBulbs);
                     // insert them as vertices
                     var i;
-                    for (i = 0; i < outgoingBulbs.length; i++)
-                        graph.nodes = safelyAddBulbTo(outgoingBulbs[i],
+                    for (i = 0; i < outgoingNodes.length; i++)
+                        graph.nodes = safelyAddBulbTo(outgoingNodes[i],
                                                       graph.nodes);
 
                     // insert edges from the current bulb to the outgoing bulbs
-                    outgoingBulbs.forEach(function (outBulb) {
+                    outgoingNodes.forEach(function (outBulb) {
                         graph.links.push({ source : activeBulbId,
                                            target : outBulb._id });
 
@@ -719,7 +752,6 @@ function addLink(targetId) {
         return;
 
     activeBulb.outgoingNodes.push(targetId);
-    state = clickStates.SELECT;
 
     updateBulb(null);
 }
@@ -729,8 +761,100 @@ function removeLink(targetId) {
         return (b != targetId);
     });
 
-    state = clickStates.SELECT;
     updateBulb(null);
+}
+
+function addLinkFrom(targetBulbId) {
+    if (targetBulbId == activeBulbId)
+        return;
+
+    $.getJSON('/bulb/' + targetBulbId, function (targetBulb) {
+        if (targetBulb.msg)
+            return;
+
+        if (targetBulb.outgoingNodes.indexOf(activeBulbId) > -1)
+            return;
+
+        targetBulb.outgoingNodes.push(activeBulbId);
+        $.ajax({
+                type : 'PUT',
+                url : '/bulb/' + targetBulbId,
+                data : targetBulb,
+                dataType : 'JSON'
+            }).done(function (msg) {
+                selectBulb(null, activeBulbId);
+        });
+    });
+}
+
+function removeLinkFrom(targetBulbId) {
+    $.getJSON('/bulb/' + targetBulbId, function (targetBulb) {
+        if (targetBulb.msg)
+            return;
+
+        var index = targetBulb.outgoingNodes.indexOf(activeBulbId);
+
+        if (index == -1)
+            return;
+
+        targetBulb.outgoingNodes.splice(index,1);
+
+        $.ajax({
+                type : 'PUT',
+                url : '/bulb/' + targetBulbId,
+                data : targetBulb,
+                dataType : 'JSON'
+            }).done(function (msg) {
+                selectBulb(null, activeBulbId);
+        });
+    });
+}
+
+function takePossession(targetBulbId) {
+    if (targetBulbId == activeBulbId)
+        return;
+
+    $.getJSON('/bulb/' + targetBulbId, function (targetBulb) {
+        if (targetBulb.msg)
+            return;
+
+        targetBulb.parentContainer = activeBulbId;
+
+        $.ajax({
+                type : 'PUT',
+                url : '/bulb/' + targetBulbId,
+                data : targetBulb,
+                dataType : 'JSON'
+            }).done(function (msg) {
+                selectBulb(null, activeBulbId);
+        });
+    });
+}
+
+function releasePossession(targetBulbId) {
+    if (targetBulbId == activeBulbId)
+        return;
+    
+    $.getJSON('/bulb/' + targetBulbId, function (targetBulb) {
+        if (targetBulb.msg)
+            return;
+
+        if (targetBulb.parentContainer != activeBulbId)
+            return;
+
+        if (activeBulb.parentContainer) {
+            targetBulb.parentContainer = activeBulb.parentContainer;
+        } else if (activeBulb.parentWorkspace && !targetBulb.parentWorkspace) {
+            targetBulb.parentWorkspace = activeBulb.parentWorkspace;
+        } else {
+            targetBulb.parentWorkspace = '';
+        }
+
+        $.put('/bulb/' + targetBulbId, function (msg) {
+            selectBulb(null, activeBulbId);
+        });
+    });
+    return;
 }
 
 function pickParentWorkspace(event) {
