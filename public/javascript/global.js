@@ -265,6 +265,8 @@ function drawGraphCallback () {
                 activeBulb.outgoingNodes.indexOf(d._id) != -1)
                 return 'green';
 
+            // ideally this would not render any Search...-added nodes as blue,
+            // since they aren't children.
             return 'blue';
         })
         .style('opacity', function (d) {
