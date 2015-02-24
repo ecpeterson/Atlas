@@ -850,8 +850,13 @@ function releasePossession(targetBulbId) {
             targetBulb.parentWorkspace = '';
         }
 
-        $.put('/bulb/' + targetBulbId, function (msg) {
-            selectBulb(null, activeBulbId);
+        $.ajax({
+                type : 'PUT',
+                url : '/bulb/' + targetBulbId,
+                data : targetBulb,
+                dataType : 'JSON'
+            }).done(function (msg) {
+                selectBulb(null, activeBulbId);
         });
     });
     return;
