@@ -1,0 +1,13 @@
+
+.link {
+    stroke: #999;
+    stroke-opacity: .6;
+}
+
+a.activeButton {
+	background-color: #99ff99;
+}
+
+a.activeButton:hover {
+	background-color: #77dd77;
+}

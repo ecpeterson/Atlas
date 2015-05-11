@@ -142,21 +142,17 @@ $(document).ready(function() {
         bulbHistory = [];
         selectBulb(null, activeBulbId);
     });
+    setClickState(clickStates.SELECT)(null);
 
-    // hook up the graph state buttons
-    function setClickState(newState) {
-        return function (event) {
-            if (event) event.preventDefault();
-            state = newState;
+    // hook up the graph state buttons.
+    // TODO: actually, this should probably *create* the buttons as well as hook
+    // them up.
+    for (var key in clickStates) {
+        if (clickStates.hasOwnProperty(key)) {
+            var stateName = clickStates[key];
+            $('a#'+stateName+'Button').on('click', setClickState(stateName));
         }
-    };
-    $('a#selectButton').on('click', setClickState(clickStates.SELECT));
-    $('a#linkToButton').on('click', setClickState(clickStates.LINKTO));
-    $('a#unlinkToButton').on('click', setClickState(clickStates.DELINKTO));
-    $('a#linkFromButton').on('click', setClickState(clickStates.LINKFROM));
-    $('a#unlinkFromButton').on('click', setClickState(clickStates.DELINKFROM));
-    $('a#possessButton').on('click', setClickState(clickStates.POSSESS));
-    $('a#depossessButton').on('click', setClickState(clickStates.DEPOSSESS));
+    }
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
@@ -167,6 +163,19 @@ $(document).ready(function() {
 });
 
 // Utility functions ===========================================================
+
+function setClickState(newState) {
+    return function (event) {
+        if (event) event.preventDefault();
+
+        // update the display
+        $('a#'+state+'Button').removeClass('activeButton');
+        $('a#'+newState+'Button').addClass('activeButton');
+
+        // update the internal state
+        state = newState;
+    }
+};
 
 function clickBulb(d, i) {
     if (d._id == 'historyDummyNode') {
@@ -186,37 +195,37 @@ function clickBulb(d, i) {
 
         case clickStates.LINKTO: {
             addLink(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 
         case clickStates.DELINKTO: {
             removeLink(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 
         case clickStates.LINKFROM: {
             addLinkFrom(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 
         case clickStates.DELINKFROM: {
             removeLinkFrom(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 
         case clickStates.POSSESS: {
             takePossession(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 
         case clickStates.DEPOSSESS: {
             releasePossession(d._id);
-            state = clickStates.SELECT;
+            setClickState(clickStates.SELECT)(null);
             return;
         }
 

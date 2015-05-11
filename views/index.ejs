@@ -6,14 +6,7 @@
     <title>Atlas</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
-
-    <style>
-        .link {
-            stroke: #999;
-            stroke-opacity: .6;
-        }
-    </style>
-
+    <link rel="stylesheet" href="css/local.css"> <!-- load local CSS declarations -->
 </head>
 <body>
 <div class="container-fluid" style="padding:20px;">
@@ -43,14 +36,15 @@
             <a href="#" class="btn btn-default" id="toplevelButton">Add Toplevel Nodes...</a>
             <br />
 
-            <a href="#" class="btn btn-default" id="selectButton">Select</a>
-            <a href="#" class="btn btn-default" id="linkToButton">Link to target</a>
-            <a href="#" class="btn btn-default" id="unlinkToButton">Unlink to target</a>
-            <a href="#" class="btn btn-default" id="linkFromButton">Link from target</a>
-            <a href="#" class="btn btn-default" id="unlinkFromButton">Unlink from target</a>
-            <a href="#" class="btn btn-default" id="possessButton">Possess target</a>
-            <a href="#" class="btn btn-default" id="depossessButton">Release target</a>
-            <br />
+            <div id="stateButtons">
+                <a href="#" class="btn btn-default" id="SELECTButton">Select</a>
+                <a href="#" class="btn btn-default" id="LINKTOButton">Link to target</a>
+                <a href="#" class="btn btn-default" id="DELINKTOButton">Unlink to target</a>
+                <a href="#" class="btn btn-default" id="LINKFROMButton">Link from target</a>
+                <a href="#" class="btn btn-default" id="DELINKFROMButton">Unlink from target</a>
+                <a href="#" class="btn btn-default" id="POSSESSButton">Possess target</a>
+                <a href="#" class="btn btn-default" id="DEPOSSESSButton">Release target</a>
+            </div>
 
             <a href="#" class="btn btn-default" id="duplicateNode">Duplicate Node: </a>
             <input type="text" id="duplicateNodeInput" placeholder="Node ID" />
