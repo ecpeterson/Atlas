@@ -247,9 +247,11 @@ module.exports = function(app) {
 
 				bulb.hasReadAccess(req.user._id, function (ans) {
 					if (!ans) {
-						resultList.push({ _id : bulbId,
-							title : 'Read access forbidden.',
-							outgoingNodes : []});
+						// resultList.push({ _id : bulbId,
+						// 	title : 'Read access forbidden.',
+						// 	outgoingNodes : []});
+						//
+						// we actually don't have access to this node, so skip.
 						return aux(bulbList, resultList);
 					}
 
