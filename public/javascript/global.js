@@ -156,10 +156,10 @@ $(document).ready(function() {
 
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
-        function () { bulbTextNeedsRerender = true; });
+        function () { bulbTextNeedsRerender = 1; });
 
     // call MathJaX periodically to render the bulb text
-    setInterval(rerenderBulbText, 5000);
+    setInterval(rerenderBulbText, 1000);
 });
 
 // Utility functions ===========================================================
@@ -388,18 +388,29 @@ function restartGraph() {
         .start();
 }
 
-var bulbTextNeedsRerender = false;
+var bulbTextNeedsRerender = 0;
 var rerenderBulbText;
 {
     var textSource = $('#bulbInfoText');
     var textTarget = $('#bulbInfoRenderedText');
 
     rerenderBulbText = function () {
-        if (!bulbTextNeedsRerender ||
+        if (bulbTextNeedsRerender == 0 ||
             MathJax.Hub.Queue.pending)
             return;
 
-        bulbTextNeedsRerender = false;
+        // we have to be edited but not-re-edited for threshold ticks before
+        // we're willing to commit to a re-render.
+        //
+        // TODO: make this threshold part of a configuration file.
+        // counts in seconds.
+        var threshold = 4;
+        if (bulbTextNeedsRerender < threshold) {
+            bulbTextNeedsRerender += 1;
+            return;
+        }
+
+        bulbTextNeedsRerender = 0;
 
         var content = textSource.val();
 
@@ -680,7 +691,7 @@ function selectBulb(event, bulbId) {
         // to save space, we moved the text part into a different call
         $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
             $('#bulbInfoText').val(response.text);
-            bulbTextNeedsRerender = true;
+            bulbTextNeedsRerender = 1;
             rerenderBulbText(); // cause an immediate re-render.
         });
     });
