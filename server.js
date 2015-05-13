@@ -12,7 +12,8 @@ var express = require('express'),
     port = process.env.PORT || 8080,
     mongoose = require('mongoose'),
     passport = require('passport'),
-    flash = require('connect-flash');
+    flash = require('connect-flash'),
+    nodemailer = require('nodemailer');
 
 var morgan = require('morgan'),
     cookieParser = require('cookie-parser'),
@@ -25,6 +26,15 @@ var configDB = require('./config/database.js');
 
 // connect to the database
 mongoose.connect(configDB.url);
+
+// set up the emailer
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: configDB.emailServer.user,
+        pass: configDB.emailServer.pass
+    }
+});
 
 // pass the passport object in for configuration
 require('./config/passport')(app, passport);
@@ -46,7 +56,7 @@ app.use(flash()); // "use connect-flash for flash messages stored in session"
 
 // ROUTES =====================================================================
 
-require('./app/routes/login.js')(app, passport);
+require('./app/routes/login.js')(app, passport, transporter);
 require('./app/routes/index.js')(app);
 require('./app/routes/bulb-manip.js')(app);
 require('./app/routes/workspace-manip.js')(app);

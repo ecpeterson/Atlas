@@ -3,7 +3,7 @@
 
 var User = require('../models/user.js');
 
-module.exports = function(app, passport) {
+module.exports = function(app, passport, transporter) {
 	// LOGIN ===================================================================
 	// show the login form
 	app.get('/login', function(req, res) {
@@ -18,6 +18,46 @@ module.exports = function(app, passport) {
 		failureRedirect : '/login',
 		failureFlash : true
 	}));
+
+	// PASSWORD RESET ==========================================================
+	app.get('/recover', function(req, res) {
+		res.render('recover.ejs', {
+			message: req.flash('recoverMessage')
+		});
+	});
+
+	app.post('/recover', function(req, res) {
+		User.findOne({ 'local.email' : req.body.email }, function(err, user) {
+			if (err) {
+				res.send({ msg : err });
+				return;
+			}
+
+			var newPassword = '' + Math.round((Math.random()+1)*10000000);
+
+			// send the target user an email saying his password has been reset
+			var mailOptions = {
+				from: 'Atlas',
+				to: user.local.email,
+				subject: 'Your password has been reset',
+				text: 'Your password has been reset to ' + newPassword + '.'
+			};
+
+			transporter.sendMail(mailOptions, function(error, info) {
+				if (error) {
+					console.log(error);
+				} else {
+					// the email was sent, so the user will be aware of their
+					// new password, which is now...
+					user.local.password = user.generateHash(newPassword);
+					user.save();
+				}
+
+				// in any case, send the requester home.
+				res.redirect('/');
+			});
+		});
+	});
 
 	// SIGNUP ==================================================================
 	// show the signup form

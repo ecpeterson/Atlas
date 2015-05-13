@@ -34,6 +34,7 @@
 		"connect-flash" : "~0.1.1",     
 		"bcrypt-nodejs" : "latest",
 		"markdown" : "~0.5.0",
+		"nodemailer" : "latest",
 
 		"morgan": "~1.5.0",
 		"body-parser": "~1.0.0",

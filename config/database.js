@@ -5,5 +5,9 @@
 // prevent malicious users from accessing the database.
 
 module.exports = {
-	'url' : 'mongodb://localhost:27017/atlas'
+	'url' : 'mongodb://localhost:27017/atlas',
+	'emailServer' : {
+		user: 'UserName@gmail.com',
+		pass: 'GmailPassword'
+	}
 }

@@ -3,7 +3,7 @@ ATLAS ==========================================================================
       http://github.com/ecpeterson/Atlas
 ================================================================================
 
-Originally intended for researches in mathematics, ATLAS is meant to provide a
+Originally intended for researchers in mathematics, ATLAS is meant to provide a
 long-term host for evolving ideas, interacting with each other and across users.
 
 Built with:
@@ -15,4 +15,5 @@ Built with:
     MathJaX
     jQuery
     D3
+    Nodemailer
     
