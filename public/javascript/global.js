@@ -685,7 +685,8 @@ function selectBulb(event, bulbId) {
             // start by assembling the incoming history chain
             if (bulbHistory.length > 2)
                 historyChain.push({ _id : "historyDummyNode",
-                                    title : "..." });
+                                    title : "...",
+                                    pathData : { workspace: '' }});
             historyChain = historyChain.concat(
                 bulbHistory.slice(bulbHistory.length-2,
                                   bulbHistory.length));
