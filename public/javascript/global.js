@@ -51,21 +51,9 @@ $(document).ready(function() {
                         'width:' + width + 'px;' +
                         'height:' + height + 'px');
 
-    // the canvas background is used to display the metaball stuff
-    canvas =
-        d3.select('#divSVG')
-            .append('canvas')
-                .attr('width', width)
-                .attr('height', height)
-                .node().getContext('2d');
-    // we also need a background canvas to use as a scratch buffer
-    tempCanvas = document.createElement("canvas");
-    tempCanvas.width = width; tempCanvas.height = height;
-    tempCanvas = tempCanvas.getContext("2d");
-
     // insert the drawing surface
     svg = d3.select('#divSVG')
-        .append('svg:svg')
+        .insert('svg:svg', ':first-child')
             .attr('width', width)
             .attr('height', height);
 
@@ -73,6 +61,18 @@ $(document).ready(function() {
         .attr('class', 'overlay')
         .attr('width', width)
         .attr('height', height);
+
+    // the canvas background is used to display the metaball stuff
+    canvas =
+        d3.select('#divSVG')
+            .insert("canvas", ":first-child")
+                .attr('width', width)
+                .attr('height', height)
+                .node().getContext('2d');
+    // we also need a background canvas to use as a scratch buffer
+    tempCanvas = document.createElement("canvas");
+    tempCanvas.width = width; tempCanvas.height = height;
+    tempCanvas = tempCanvas.getContext("2d");
 
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
@@ -186,6 +186,17 @@ $(document).ready(function() {
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
         function () { bulbTextNeedsRerender = 1; });
+
+    var renderedText = $('#bulbInfoRenderedText'),
+        offset = renderedText.offset();
+    renderedText
+        .attr('style', 'overflow: auto; position: relative')
+        .height(2*largeRadius - 30)
+        .width(2*largeRadius - 10)
+        .offset({
+            top : (height/2 - largeRadius + offset.top + 15),
+            left : (width/2 - largeRadius + offset.left + 5)
+        });
 
     // call MathJaX periodically to render the bulb text
     setInterval(rerenderBulbText, 1000);
