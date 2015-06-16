@@ -449,7 +449,7 @@ function restartGraph() {
                 d.x = Math.random() * width;
                 d.y = Math.random() * height;
             });
-    nodeg.each(function (d) {
+    node.each(function (d) {
         d.radius = smallRadius;
     });
     nodeg
