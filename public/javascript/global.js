@@ -506,7 +506,6 @@ function restartGraph() {
                 return -180;
         })
         .linkDistance(function (d) {
-            console.log("help");
             if (d.source._id == activeBulbId ||
                 d.target._id == activeBulbId)
                 return 240;
