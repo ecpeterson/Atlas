@@ -3,6 +3,9 @@
 var width = 800,
     height = 400;
 
+var smallRadius = 8;
+var largeRadius = 16;
+
 // Globals =====================================================================
 
 var activeBulbId = '';
@@ -316,7 +319,20 @@ function drawGraphCallback () {
                 shortHistory.indexOf(d._id) != -1)
                 return 0.3;
             return 1.0;
+        })
+        .attr('r', function (d) {
+            if (d._id == activeBulbId)
+                return largeRadius;
+            else
+                return smallRadius;
         });
+    node.selectAll('text')
+        .attr('dx', function (d) {
+                if (d._id == activeBulbId)
+                    return largeRadius + smallRadius/4;
+                else
+                    return smallRadius + smallRadius/4;
+            });
 }
 
 function restartGraph() {
@@ -354,16 +370,16 @@ function restartGraph() {
             });
     nodeg
         .append("circle")
-            .attr('r', 8)
+            .attr("r", smallRadius) // default value
             .style("fill", function (d) {
-                return "red";
+                return "red"; // default value
             })
             .style("stroke", "black")
             .attr("dx", 0)
             .attr("dy", 0);
     nodeg
         .append("text")
-            .attr("dx", 10)
+            .attr("dx", smallRadius + smallRadius/4)
             .attr("dy", ".35em")
             .text(function (d) {
                 return d.title;
