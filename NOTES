@@ -48,22 +48,6 @@ Eventually we'll want to render these nodes nicely. Matt Pancia says that D3 off
 
     https://github.com/mbostock/d3/wiki/Tutorials .
 
-In particular, this D3 demo contains a lot of the things we're interested in
-
-    http://flowingdata.com/2012/08/02/how-to-make-an-interactive-network-visualization/ .
-
 One of the tutorials also suggested the following nice book:
 
     http://www.amazon.com/JavaScript-Good-Parts-Douglas-Crockford/dp/0596517742 .
-
-I also found this metaball fiddle:
-
-    http://jsfiddle.net/TscNZ/802/ .
-
-This looks useful for drawing the glow underneath workspace nodes, so that nearby nodes that belong to the same workspace are automatically joined.
-
-Possibly this will be helpful for organizing the graph drawing code:
-
-    http://stackoverflow.com/questions/10887027/how-do-i-set-the-focal-node-in-a-d3-js-force-directed-graph?lq=1 ,
-
-but using it will require not using the built-in d3.layout.force thing. You'll have to lay things out a little manually.
