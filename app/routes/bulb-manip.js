@@ -19,9 +19,12 @@ module.exports = function(app) {
 					return;
 				}
 
-				bulb.text = '';
-
-				res.send(bulb);
+				bulb.findPath(function (path) {
+					bulb = bulb.toObject();
+					bulb.pathData = path;
+					bulb.text = '';
+					res.send(bulb);
+				});
 			});
 		});
 	});
@@ -96,7 +99,25 @@ module.exports = function(app) {
 						return;
 					}
 
-					res.send(bulbs);
+					// we've collected the bulbs, now we need to provide their
+					// workspace attributes
+
+					function aux (inbox, outbox) {
+						if (inbox.length == 0) {
+							res.send(outbox);
+							return;
+						}
+
+						var bulb = inbox.pop();
+						bulb.findPath(function(path) {
+							var b = bulb.toObject();
+							b.pathData = path;
+							outbox.push(b);
+							return aux(inbox, outbox);
+						});
+					};
+
+					aux(bulbs, []);
 					return;
 				});
 			});
@@ -202,8 +223,22 @@ module.exports = function(app) {
 				bulb.text = '';
 			});
 
-			// return the array of bulbs
-			res.send(bulbs);
+			// augment all the bulbs with their path data
+			function aux (inbox, outbox) {
+				if (inbox.length == 0) {
+					// send the list back when done
+					res.send(outbox);
+					return;
+				}
+
+				var bulb = inbox.pop();
+				bulb.findPath(function (path) {
+					bulb.pathData = path;
+					outbox.push(bulb);
+					aux(inbox, outbox);
+				});
+			}
+			aux(bulbs, []);
 		});
 	});
 
@@ -257,10 +292,14 @@ module.exports = function(app) {
 
 					// if we made it here, we can read the bulb. build a
 					// truncated bulb object from it & push to the result list
-					resultList.push({ _id : bulbId,
-						title : bulb.title,
-						outgoingNodes : bulb.outgoingNodes });
-					return aux(bulbList, resultList);
+
+					bulb.findPath(function (path) {
+						resultList.push({ _id : bulbId,
+										  title : bulb.title,
+										  outgoingNodes : bulb.outgoingNodes,
+										  pathData : path });
+						return aux(bulbList, resultList);
+					});
 				});
 			});
 		}

@@ -29,8 +29,22 @@ module.exports = function(app) {
 					return;
 				}
 
-				res.json(bulbs);
-				return;
+				function aux (inbox, outbox) {
+					if (inbox.length == 0) {
+						res.send(outbox);
+						return;
+					}
+
+					var bulb = inbox.pop();
+					bulb.findPath(function (path) {
+						var b = bulb.toObject();
+						b.pathData = path;
+						outbox.push(b);
+						aux(inbox, outbox);
+					});
+				};
+
+				aux(bulbs, []);
 			});
 		});
 	});

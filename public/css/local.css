@@ -11,3 +11,23 @@ a.activeButton {
 a.activeButton:hover {
 	background-color: #77dd77;
 }
+
+body {
+	margin: 0;
+}
+
+svg {
+	position: absolute;
+    top: 0;
+    left: 0;
+}
+
+canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+rect {
+	fill: transparent;
+}

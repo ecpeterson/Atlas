@@ -1,7 +1,8 @@
 // Settings ====================================================================
 
 var width = 800,
-    height = 400;
+    height = 400,
+    metaballThreshold = 300;
 
 var smallRadius = 8;
 var largeRadius = 16;
@@ -25,6 +26,8 @@ var clickStates = {
 var state = clickStates.SELECT;
 
 var svg = {};
+var canvas = {},
+    tempCanvas = {};
 var force = {};
 var color = {};
 var graph =
@@ -34,6 +37,7 @@ var graph =
     };
 var link = {};
 var node = {};
+var visibleWorkspaces = [];
 
 var debug = 0;
 
@@ -42,11 +46,33 @@ var debug = 0;
 $(document).ready(function() {
     //// Set up the bulb graph
 
+    d3.select('#divSVG')
+        .attr('style',  'position:relative;' +
+                        'width:' + width + 'px;' +
+                        'height:' + height + 'px');
+
+    // the canvas background is used to display the metaball stuff
+    canvas =
+        d3.select('#divSVG')
+            .append('canvas')
+                .attr('width', width)
+                .attr('height', height)
+                .node().getContext('2d');
+    // we also need a background canvas to use as a scratch buffer
+    tempCanvas = document.createElement("canvas");
+    tempCanvas.width = width; tempCanvas.height = height;
+    tempCanvas = tempCanvas.getContext("2d");
+
     // insert the drawing surface
     svg = d3.select('#divSVG')
         .append('svg:svg')
             .attr('width', width)
             .attr('height', height);
+
+    svg.append('rect')
+        .attr('class', 'overlay')
+        .attr('width', width)
+        .attr('height', height);
 
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
@@ -333,6 +359,55 @@ function drawGraphCallback () {
                 else
                     return smallRadius + smallRadius/4;
             });
+
+    //
+    // draw the metaball layer
+    //
+
+    // start by clearing the scratch canvas
+    tempCanvas.clearRect(0, 0, width, height);
+    // now draw a circle beneath each node
+    node
+        .each(function(d, i) {
+            var radius = 6*(d._id == activeBulbId ? largeRadius : smallRadius);
+
+            var workspaceIndex = visibleWorkspaces.indexOf(d.pathData.workspace);
+            if (workspaceIndex == -1) {
+                // we don't belong to a workspace, so don't bother drawing.
+                return;
+            }
+            
+            // otherwise, we do belong to a workspace, so now grab a color index
+            var color = d3.rgb(
+                d3.scale.category10().domain(visibleWorkspaces)
+                                        (d.pathData.workspace));
+            var colorString = color.r + ', ' + color.g + ', ' + color.b;
+
+            tempCanvas.beginPath();
+            var grad = tempCanvas.createRadialGradient(d.x, d.y, 1, d.x, d.y,
+                radius);
+            grad.addColorStop(0, 'rgba(' + colorString + ', 1)');
+            grad.addColorStop(1, 'rgba(' + colorString + ', 0)');
+            tempCanvas.fillStyle = grad;
+            tempCanvas.arc(d.x, d.y, radius, 0, Math.PI*2);
+            tempCanvas.fill();
+        });
+
+    // smear it into metaballs
+    var imageData = tempCanvas.getImageData(0,0,width,height),
+        pix = imageData.data;
+    
+    for (var i = 0, n = pix.length; i < n; i += 4) {
+        if (pix[i + 3] < metaballThreshold) {
+            pix[i + 3] /= 3;
+
+            if (pix[i + 3] > metaballThreshold / 4)
+                pix[i + 3] = 0;
+        }
+    }
+
+    // post smeared data to the display canvas
+    canvas.putImageData(imageData, 0, 0);
 }
 
 function restartGraph() {
@@ -402,6 +477,15 @@ function restartGraph() {
         .nodes(graph.nodes)
         .links(graph.links)
         .start();
+
+    // update the collection of workspace color indices
+    visibleWorkspaces = [];
+    
+    graph.nodes.forEach(function (d) {
+        if (d.pathData.workspace != "" &&
+            visibleWorkspaces.indexOf(d.pathData.workspace) == -1)
+            visibleWorkspaces.push(d.pathData.workspace);
+    });
 }
 
 var bulbTextNeedsRerender = 0;
@@ -543,7 +627,7 @@ function selectBulb(event, bulbId) {
     activeBulbId = bulbId;
 
     // now we actually need the contents of the current bulb, so grab it.
-    $.getJSON('/bulb/' + activeBulbId, function(response) {
+    $.get('/bulb/' + activeBulbId, function(response) {
         if (response.msg) {
             alert('Error: ' + response.msg);
             return;
