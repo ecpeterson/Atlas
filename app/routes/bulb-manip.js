@@ -233,8 +233,9 @@ module.exports = function(app) {
 
 				var bulb = inbox.pop();
 				bulb.findPath(function (path) {
-					bulb.pathData = path;
-					outbox.push(bulb);
+					var b = bulb.toObject();
+					b.pathData = path;
+					outbox.push(b);
 					aux(inbox, outbox);
 				});
 			}
