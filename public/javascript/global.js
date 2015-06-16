@@ -273,7 +273,7 @@ function drawGraphCallback () {
         .attr('x2', function (d) { return d.target.x; })
         .attr('y2', function (d) { return d.target.y; });
 
-    // update circle positions
+    // update history node positions
     var shortHistory = bulbHistory.slice(-2).map(function (b) {
         return b._id;
     });
@@ -322,8 +322,8 @@ function drawGraphCallback () {
             return "translate(" + d.x + "," + d.y + ")";
         });
 
-    // control circle colors
-    node.selectAll('circle')
+    // control node colors
+    node.selectAll('rect')
         .style('fill', function (d) {
             if (d._id == activeBulbId)
                 return 'red';
@@ -346,12 +346,18 @@ function drawGraphCallback () {
                 return 0.3;
             return 1.0;
         })
-        .attr('r', function (d) {
+        .each(function (d) {
             if (d._id == activeBulbId)
-                return largeRadius;
+                d.radius = largeRadius;
             else
-                return smallRadius;
-        });
+                d.radius = smallRadius;
+        })
+        .attr("x", function (d) { return -d.radius; })
+        .attr("y", function (d) { return -d.radius; })
+        .attr("rx", function (d) { return smallRadius; })
+        .attr("ry", function (d) { return smallRadius; })
+        .attr("width", function (d) { return 2*d.radius; })
+        .attr("height", function (d) { return 2*d.radius; });
     node.selectAll('text')
         .attr('dx', function (d) {
                 if (d._id == activeBulbId)
@@ -366,10 +372,10 @@ function drawGraphCallback () {
 
     // start by clearing the scratch canvas
     tempCanvas.clearRect(0, 0, width, height);
-    // now draw a circle beneath each node
+    // now draw a ball beneath each node
     node
         .each(function(d, i) {
-            var radius = 6*(d._id == activeBulbId ? largeRadius : smallRadius);
+            var radius = 6*(d.radius);
 
             var workspaceIndex = visibleWorkspaces.indexOf(d.pathData.workspace);
             if (workspaceIndex == -1) {
@@ -443,12 +449,18 @@ function restartGraph() {
                 d.x = Math.random() * width;
                 d.y = Math.random() * height;
             });
+    nodeg.each(function (d) {
+        d.radius = smallRadius;
+    });
     nodeg
-        .append("circle")
-            .attr("r", smallRadius) // default value
-            .style("fill", function (d) {
-                return "red"; // default value
-            })
+        .append("rect") // set a bunch of default values
+            .attr("x", function (d) { return -d.radius; })
+            .attr("y", function (d) { return -d.radius; })
+            .attr("rx", function (d) { return d.radius; })
+            .attr("ry", function (d) { return d.radius; })
+            .attr("width", function (d) { return 2*d.radius; })
+            .attr("height", function (d) { return 2*d.radius; })
+            .style("fill", "red")
             .style("stroke", "black")
             .attr("dx", 0)
             .attr("dy", 0);
