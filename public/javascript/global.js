@@ -5,7 +5,7 @@ var width = 800,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 120;
+var largeRadius = 67;
 
 // Globals =====================================================================
 
