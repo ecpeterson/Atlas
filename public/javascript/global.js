@@ -1,11 +1,11 @@
 // Settings ====================================================================
 
 var width = 800,
-    height = 400,
+    height = 600,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 16;
+var largeRadius = 120;
 
 // Globals =====================================================================
 
@@ -359,12 +359,25 @@ function drawGraphCallback () {
         .attr("width", function (d) { return 2*d.radius; })
         .attr("height", function (d) { return 2*d.radius; });
     node.selectAll('text')
+        .attr("text-anchor", function (d) {
+            if (d._id == activeBulbId)
+                return "middle";
+            else
+                return "";
+        })
         .attr('dx', function (d) {
                 if (d._id == activeBulbId)
-                    return largeRadius + smallRadius/4;
+                    return 0;
                 else
                     return smallRadius + smallRadius/4;
-            });
+            })
+        .attr('dy', function (d) {
+            if (d._id == activeBulbId)
+                // TODO: 14 is a magic number related to font size!
+                return -largeRadius+14;
+            else
+                return ".35em";
+        });
 
     //
     // draw the metaball layer
@@ -483,6 +496,22 @@ function restartGraph() {
     node
         .each(function (d) {
             d3.select(this).select('text').text(d.title)
+        });
+
+    force
+        .charge(function (d) {
+            if (d._id == activeBulbId)
+                return -2000;
+            else
+                return -180;
+        })
+        .linkDistance(function (d) {
+            console.log("help");
+            if (d.source._id == activeBulbId ||
+                d.target._id == activeBulbId)
+                return 240;
+            else
+                return 120;
         });
 
     force
