@@ -191,7 +191,7 @@ $(document).ready(function() {
         offset = renderedText.offset();
     renderedText
         .attr('style', 'overflow: auto; position: relative')
-        .height(2*largeRadius - 10)
+        .height(2*largeRadius - 25)
         .width(2*largeRadius - 10)
         .offset({
             top : (height/2 - largeRadius + offset.top + 5),
@@ -464,14 +464,6 @@ function restartGraph() {
         }
     });
 
-    link = link.data(graph.links); // we're going to reset the link data to this
-    link.enter() // for all incoming links...
-            .append('line')
-                .attr('class', 'link')
-                .style('marker-end', 'url(#suit)'); // this draws arrowheads
-    link.exit() // for all outgoing links...
-            .remove();
-
     // we're going to reset the node data to this
     node = node.data(graph.nodes, function (d, i) { return d._id });
     // for all incoming nodes...
@@ -535,6 +527,14 @@ function restartGraph() {
             else
                 return 120;
         });
+
+    link = link.data(graph.links); // we're going to reset the link data to this
+    link.enter() // for all incoming links...
+            .insert('line', ':first-child')
+                .attr('class', 'link')
+                .style('marker-end', 'url(#suit)'); // this draws arrowheads
+    link.exit() // for all outgoing links...
+            .remove();
 
     force
         .nodes(graph.nodes)
