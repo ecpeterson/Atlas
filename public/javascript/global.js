@@ -303,8 +303,8 @@ function drawGraphCallback () {
             // if we live in the history, then put us into the up-left chain
             if (d._id == 'historyDummyNode') {
                 d.fixed = false;
-                d.x = d.px = width / 8;
-                d.y = d.py = height / 8;
+                d.x = d.px = width / 24;
+                d.y = d.py = height / 24;
                 d.fixed = true;
                 return;
             }
@@ -312,14 +312,14 @@ function drawGraphCallback () {
             if (forwardIndex != -1) {
                 if (shortHistory.length - forwardIndex == 2) {
                     d.fixed = false;
-                    d.x = d.px = width / 4;
-                    d.y = d.py = height / 4;
+                    d.x = d.px = width / 8;
+                    d.y = d.py = height / 8;
                     d.fixed = true;
                     return;
                 } else if (shortHistory.length - forwardIndex == 1) {
                     d.fixed = false;
-                    d.x = d.px = width * 3 / 8;
-                    d.y = d.py = height * 3 / 8;
+                    d.x = d.px = width / 4;
+                    d.y = d.py = height / 4;
                     d.fixed = true;
                     return;
                 }
