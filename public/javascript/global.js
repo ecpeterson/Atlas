@@ -5,7 +5,7 @@ var width = 800,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 67;
+var largeRadius = 120;
 
 // Globals =====================================================================
 
@@ -191,10 +191,10 @@ $(document).ready(function() {
         offset = renderedText.offset();
     renderedText
         .attr('style', 'overflow: auto; position: relative')
-        .height(2*largeRadius - 30)
+        .height(2*largeRadius - 10)
         .width(2*largeRadius - 10)
         .offset({
-            top : (height/2 - largeRadius + offset.top + 15),
+            top : (height/2 - largeRadius + offset.top + 5),
             left : (width/2 - largeRadius + offset.left + 5)
         });
 
@@ -388,6 +388,18 @@ function drawGraphCallback () {
                 return -largeRadius+14;
             else
                 return ".35em";
+        })
+        .style('visibility', function (d) {
+            if (d._id == activeBulbId)
+                return "hidden";
+            else
+                return "visible";
+        })
+        .style('font-size', function (d) {
+            if (d._id == activeBulbId)
+                return '16px';
+            else
+                return '';
         });
 
     //
@@ -563,22 +575,30 @@ var rerenderBulbText;
 
         bulbTextNeedsRerender = 0;
 
-        var content = textSource.val();
+        var content = '**' + $('#bulbInfoTitle').val() + '**' +
+                      '\n\n' + textSource.val();
 
-        content = content.replace(/---/g, '`&mdash;`');
-        content = content.replace(/--/g, '`&ndash;`');
+        content = content.replace(/---/g, '—');
+        content = content.replace(/--/g, '–');
 
         contentArray = content.split('`');
-        content = '';
-        var index;
+        var markdownContent = '',
+            mathjaxArray = [],
+            index;
         for (index = 0; index < contentArray.length; index++) {
-            if (index % 2 == 0)
-                content +=
-                    markdown.toHTML(contentArray[index])
-                        .slice(0,-4) // remove trailing </p>
-                        .substring(3); // remove leading <p>
-            else
-                content += contentArray[index];
+            if (index % 2 == 0) {
+                // this is a markdown component
+                markdownContent += contentArray[index];
+            } else {
+                // this is not a markdown component
+                markdownContent += (' MATH' + ((index-1)/2) + 'NODE ');
+                mathjaxArray.push(contentArray[index]);
+            }
+        }
+
+        content = markdown.toHTML(markdownContent);
+        for (index = 0; index < mathjaxArray.length; index++) {
+            content = content.replace('MATH'+index+'NODE', mathjaxArray[index]);
         }
 
         textTarget.html(content);
