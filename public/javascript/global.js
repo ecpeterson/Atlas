@@ -5,7 +5,7 @@ var width = 800,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 120;
+var largeRadius = 150;
 
 // Globals =====================================================================
 
@@ -77,7 +77,9 @@ $(document).ready(function() {
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
               .charge(-180) // how forceful the repositioning is
-              .linkDistance(120) // relaxed length of edge springs
+              .gravity(0.0) // disable gravity, since it's confusing
+              .linkDistance(largeRadius*1.5) // relaxed length of edge springs
+              .friction(0.1)
               .size([width, height]);
 
     force
@@ -276,7 +278,118 @@ function clickBulb(d, i) {
     }
 }
 
+function constrainGraph () {
+    // we have two kinds of geometric checks to do:
+    // 1) collision checks, 2) boundary box checks.
+
+    function collide(node) {
+        var nx1, ny1, nx2, ny2;
+        if (node._id == activeBulbId) {
+            nx1 = node.x - largeRadius;
+            nx2 = node.x + largeRadius;
+            ny1 = node.y - largeRadius;
+            ny2 = node.y + largeRadius;
+        } else {
+            var textWidth = svg.selectAll("text").filter(function (d) {
+                return d == node;
+            })[0][0].offsetWidth;
+
+            nx1 = node.x - textWidth/2;
+            nx2 = node.x + textWidth/2;
+            ny1 = node.y - smallRadius;
+            ny2 = node.y + smallRadius*1.5;
+        }
+        return function(quad, x1, y1, x2, y2) {
+            if (quad.point && (quad.point !== node)) {
+                var d1 = nx2 - x1,
+                    d2 = x2 - nx1,
+                    d3 = ny2 - y1,
+                    d4 = y2 - ny1,
+                    test = d1 > 0 && d2 > 0 && d3 > 0 && d4 > 0;
+                if (test && !(node.fixed && quad.point.fixed)) {
+                    // find the shortest direction along which we can move
+                    var array = [[d1, 1], [d2, 2], [d3, 3], [d4, 4]];
+                    array = array.filter(function (d) {
+                        return d[0] > 0;
+                    });
+                    array = array.sort(function (a, b) {
+                        if (a[1] > b[1])
+                            return 1;
+                        else if (a[1] < b[1])
+                            return -1;
+                        else
+                            return 0;
+                    });
+
+                    var scalar = 0.1,
+                        nodeMult = scalar,
+                        quadPointMult = scalar;
+                    if (node.fixed) {
+                        nodeMult *= 0; quadPointMult *= 1;
+                    } else if (quad.point.fixed) {
+                        nodeMult *= 1; quadPointMult *= 0;
+                    } else {
+                        nodeMult *= 0.5; quadPointMult *= 0.5;
+                    }
+
+                    console.log('collision bwt ' + node.title + ' & ' +
+                        quad.point.title + ': ' + array[0][0]);
+
+                    switch (array[0][1]) {
+                        case 1:
+                            node.x -= d1 * nodeMult;
+                            quad.point.x += d1 * quadPointMult;
+                            break;
+                        case 2:
+                            node.x += d2 * nodeMult;
+                            quad.point.x -= d2 * quadPointMult;
+                            break;
+                        case 3:
+                            node.y -= d3 * nodeMult;
+                            quad.point.y += d3 * quadPointMult;
+                            break;
+                        case 4:
+                        default:
+                            node.y += d4 * nodeMult;
+                            quad.point.y -= d4 * quadPointMult;
+                            break;
+                    }
+                }
+            }
+            return !test;
+        }
+    }
+
+    console.log('tick!');
+
+    var q = d3.geom.quadtree(graph.nodes),
+        i = 0,
+        n = graph.nodes.length;
+
+    while (++i < n) q.visit(collide(graph.nodes[i]));
+
+    // now do the boundary box checks
+    i = 0;
+    while (++i < n) {
+        var node = graph.nodes[i];
+        if (node.x < 0)
+            node.x = 0;
+        else if (node.x > width)
+            node.x = width;
+
+        if (node.y < 0)
+            node.y = 0;
+        else if (node.y > height)
+            node.y = height;
+    }
+
+    return;
+}
+
 function drawGraphCallback () {
+    // start by working on the graph geometry
+    constrainGraph();
+
     // update edge positions
     link
         .attr('x1', function (d) { return d.source.x; })
@@ -329,7 +442,7 @@ function drawGraphCallback () {
             d.fixed = false;
             return;
         })
-        .attr('transform', function (d) {
+        .attr('transform', function (d) { // this actually updates the position.
             return "translate(" + d.x + "," + d.y + ")";
         });
 
