@@ -580,8 +580,9 @@ var rerenderBulbText;
 
         content = content.replace(/---/g, '—');
         content = content.replace(/--/g, '–');
+        content = content.replace(/`/g, '');
 
-        contentArray = content.split('`');
+        contentArray = content.split(/(\$.*\$|\\\[.*\\\])/);
         var markdownContent = '',
             mathjaxArray = [],
             index;
