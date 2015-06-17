@@ -863,7 +863,7 @@ function selectBulb(event, bulbId) {
         // to save space, we moved the text part into a different call
         $.getJSON('/bulb/' + activeBulbId + '/text', function (response) {
             $('#bulbInfoText').val(response.text);
-            bulbTextNeedsRerender = 1;
+            bulbTextNeedsRerender = Infinity;
             rerenderBulbText(); // cause an immediate re-render.
         });
     });
