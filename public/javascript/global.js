@@ -370,36 +370,11 @@ function drawGraphCallback () {
         .attr("width", function (d) { return 2*d.radius; })
         .attr("height", function (d) { return 2*d.radius; });
     node.selectAll('text')
-        .attr("text-anchor", function (d) {
-            if (d._id == activeBulbId)
-                return "middle";
-            else
-                return "";
-        })
-        .attr('dx', function (d) {
-                if (d._id == activeBulbId)
-                    return 0;
-                else
-                    return smallRadius + smallRadius/4;
-            })
-        .attr('dy', function (d) {
-            if (d._id == activeBulbId)
-                // TODO: 14 is a magic number related to font size!
-                return -largeRadius+14;
-            else
-                return ".35em";
-        })
         .style('visibility', function (d) {
             if (d._id == activeBulbId)
                 return "hidden";
             else
                 return "visible";
-        })
-        .style('font-size', function (d) {
-            if (d._id == activeBulbId)
-                return '16px';
-            else
-                return '';
         });
 
     //
@@ -494,11 +469,12 @@ function restartGraph() {
             .attr("dy", 0);
     nodeg
         .append("text")
-            .attr("dx", smallRadius + smallRadius/4)
-            .attr("dy", ".35em")
+            .attr("dx", 0)
+            .attr("dy", 2.5*smallRadius)
             .text(function (d) {
                 return d.title;
-            });
+            })
+            .attr("text-anchor", "middle");
 
     // for all outgoing nodes...
     node.exit()
