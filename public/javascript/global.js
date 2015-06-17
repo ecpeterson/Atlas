@@ -77,9 +77,8 @@ $(document).ready(function() {
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
               .charge(-180) // how forceful the repositioning is
-              .gravity(0.0) // disable gravity, since it's confusing
               .linkDistance(largeRadius*1.5) // relaxed length of edge springs
-              .friction(0.1)
+              .friction(0.9)
               .size([width, height]);
 
     force
@@ -282,85 +281,61 @@ function constrainGraph () {
     // we have two kinds of geometric checks to do:
     // 1) collision checks, 2) boundary box checks.
 
-    function collide(node) {
-        var nx1, ny1, nx2, ny2;
+    // returns {width: w, height: h}
+    function getBounds(node) {
         if (node._id == activeBulbId) {
-            nx1 = node.x - largeRadius;
-            nx2 = node.x + largeRadius;
-            ny1 = node.y - largeRadius;
-            ny2 = node.y + largeRadius;
+            return {width: largeRadius, height: largeRadius};
         } else {
             var textWidth = svg.selectAll("text").filter(function (d) {
-                return d == node;
-            })[0][0].offsetWidth;
-
-            nx1 = node.x - textWidth/2;
-            nx2 = node.x + textWidth/2;
-            ny1 = node.y - smallRadius;
-            ny2 = node.y + smallRadius*1.5;
-        }
-        return function(quad, x1, y1, x2, y2) {
-            if (quad.point && (quad.point !== node)) {
-                var d1 = nx2 - x1,
-                    d2 = x2 - nx1,
-                    d3 = ny2 - y1,
-                    d4 = y2 - ny1,
-                    test = d1 > 0 && d2 > 0 && d3 > 0 && d4 > 0;
-                if (test && !(node.fixed && quad.point.fixed)) {
-                    // find the shortest direction along which we can move
-                    var array = [[d1, 1], [d2, 2], [d3, 3], [d4, 4]];
-                    array = array.filter(function (d) {
-                        return d[0] > 0;
-                    });
-                    array = array.sort(function (a, b) {
-                        if (a[1] > b[1])
-                            return 1;
-                        else if (a[1] < b[1])
-                            return -1;
-                        else
-                            return 0;
-                    });
-
-                    var scalar = 0.1,
-                        nodeMult = scalar,
-                        quadPointMult = scalar;
-                    if (node.fixed) {
-                        nodeMult *= 0; quadPointMult *= 1;
-                    } else if (quad.point.fixed) {
-                        nodeMult *= 1; quadPointMult *= 0;
-                    } else {
-                        nodeMult *= 0.5; quadPointMult *= 0.5;
-                    }
-
-                    console.log('collision bwt ' + node.title + ' & ' +
-                        quad.point.title + ': ' + array[0][0]);
-
-                    switch (array[0][1]) {
-                        case 1:
-                            node.x -= d1 * nodeMult;
-                            quad.point.x += d1 * quadPointMult;
-                            break;
-                        case 2:
-                            node.x += d2 * nodeMult;
-                            quad.point.x -= d2 * quadPointMult;
-                            break;
-                        case 3:
-                            node.y -= d3 * nodeMult;
-                            quad.point.y += d3 * quadPointMult;
-                            break;
-                        case 4:
-                        default:
-                            node.y += d4 * nodeMult;
-                            quad.point.y -= d4 * quadPointMult;
-                            break;
-                    }
-                }
-            }
-            return !test;
+                    return d == node;
+                })[0][0].offsetWidth;
+            return {width: textWidth/2, height: 2*smallRadius};
         }
     }
 
-    console.log('tick!');
+    function collide(node) {
+        var nx1, ny1, nx2, ny2;
+        var nbounds = getBounds(node);
+
+        nx1 = node.x - nbounds.width;
+        nx2 = node.x + nbounds.width;
+        ny1 = node.y - nbounds.height;
+        ny2 = node.y + nbounds.height;
+
+        return function(quad, x1, y1, x2, y2) {
+            if (quad.point && (quad.point !== node)) {
+                var dx = node.x - quad.point.x,
+                    adx = Math.abs(dx),
+                    dy = node.y - quad.point.y,
+                    ady = Math.abs(dy),
+                    qbounds = getBounds(quad.point),
+                    mdx = qbounds.width + nbounds.width,
+                    mdy = qbounds.height + nbounds.height;
+              
+                /********  This part should be modified*********/
+                if (adx < mdx  &&  ady < mdy) {          
+                    var l = Math.sqrt(dx * dx + dy * dy);
+            
+                    var scalar = 0.05;
+                    var lx = (adx - mdx) / l * 0.5 * scalar;
+                    var ly = (ady - mdy) / l * 0.5 * scalar;
+                    
+
+
+                    // choose the direction with less overlap
+                    if (lx > ly  &&  ly > 0) lx = 0;
+                        else if (ly > lx  &&  lx > 0) ly = 0;
+
+
+                    dx *= lx; dy *= ly;
+                    node.x -= dx; node.y -= dy;
+                    quad.point.x += dx; quad.point.y += dy;
+                }
+            }
+            
+            return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        };
+    }
 
     var q = d3.geom.quadtree(graph.nodes),
         i = 0,
