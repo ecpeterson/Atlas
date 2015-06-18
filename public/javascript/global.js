@@ -396,22 +396,6 @@ function drawGraphCallback () {
                 d.fixed = true;
                 return;
             }
-            var forwardIndex = shortHistory.indexOf(d._id);
-            if (forwardIndex != -1) {
-                if (shortHistory.length - forwardIndex == 2) {
-                    d.fixed = false;
-                    d.x = d.px = width / 8;
-                    d.y = d.py = height / 8;
-                    d.fixed = true;
-                    return;
-                } else if (shortHistory.length - forwardIndex == 1) {
-                    d.fixed = false;
-                    d.x = d.px = width / 4;
-                    d.y = d.py = height / 4;
-                    d.fixed = true;
-                    return;
-                }
-            }
             
             // default:
             d.fixed = false;
@@ -775,38 +759,17 @@ function selectBulb(event, bulbId) {
         // edges (graph.links) to display. they start empty each time.
         graph.nodes = [];
         graph.links = [];
-        var historyChain = [];
         { // HISTORY and CENTER:
-            // start by assembling the incoming history chain
-            if (bulbHistory.length > 2)
-                historyChain.push({ _id : "historyDummyNode",
-                                    title : "...",
-                                    pathData : { workspace: '' }});
-            historyChain = historyChain.concat(
-                bulbHistory.slice(bulbHistory.length-2,
-                                  bulbHistory.length));
-            historyChain.push(activeBulb);
+            // first add the center node
+            graph.nodes.push(activeBulb);
 
-            var i, j;
-            for (i = historyChain.length; i >= 0; i--)
-                for (j = i + 1; j < historyChain.length; j++) {
-                    if (historyChain[i]._id == historyChain[j]._id) {
-                        historyChain.splice(i, 1);
-                        break;
-                    }
-                }
-
-            // add those bulbs to the vertex collection
-            graph.nodes = graph.nodes.concat(historyChain);
-
-            // now iterate through these few vertices to draw in the edges
-            var i = 0;
-            for (i = 0; i < historyChain.length - 1; i++) {
-                var sourceNode = historyChain[i];
-                var targetNode = historyChain[i + 1];
-
-                graph.links.push({ source : sourceNode._id,
-                                   target : targetNode._id });
+            // then, if there's a history, add that node too
+            if (bulbHistory.length > 0) {
+                graph.nodes.push({ _id : "historyDummyNode",
+                                 title : "...",
+                              pathData : { workspace: '' }});
+                graph.links.push({ source : "historyDummyNode",
+                                   target : activeBulb._id });
             }
         }
         { // OUTGOING:
