@@ -209,6 +209,10 @@ $(document).ready(function() {
 
 // Utility functions ===========================================================
 
+d3.selection.prototype.moveToFront = function() {
+    return this.each(function() { this.parentNode.appendChild(this); });
+};
+
 function setClickState(newState) {
     return function (event) {
         if (event) event.preventDefault();
@@ -592,6 +596,14 @@ function restartGraph() {
                 .style('marker-end', 'url(#suit)'); // this draws arrowheads
     link.exit() // for all outgoing links...
             .remove();
+
+    var t1 = node;
+    var t2 = t1
+        .filter(function (d) {
+            return d._id == activeBulbId;
+        });
+    var t3 = t2
+        .moveToFront();
 
     force
         .nodes(graph.nodes)
