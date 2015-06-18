@@ -432,8 +432,9 @@ function drawGraphCallback () {
             return 'blue';
         })
         .style('opacity', function (d) {
-            if (d._id == 'historyDummyNode' ||
-                shortHistory.indexOf(d._id) != -1)
+            if ((d._id == 'historyDummyNode' ||
+                shortHistory.indexOf(d._id) != -1) &&
+                (d._id != activeBulbId))
                 return 0.3;
             return 1.0;
         })
