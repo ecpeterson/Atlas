@@ -373,6 +373,10 @@ function drawGraphCallback () {
     // start by working on the graph geometry
     constrainGraph();
 
+    // clear the scratch canvas
+    tempCanvas.clearRect(0, 0, width*downsample, height*downsample);
+    canvas.clearRect(0, 0, width, height);
+
     // update edge positions
     link
         .attr('x1', function (d) { return d.source.x; })
@@ -413,6 +417,15 @@ function drawGraphCallback () {
             return "translate(" + d.x + "," + d.y + ")";
         });
 
+    // show or don't show the text
+    node.selectAll('text')
+        .style('visibility', function (d) {
+            if (d._id == activeBulbId)
+                return "hidden";
+            else
+                return "visible";
+        });
+
     // control node colors
     node.selectAll('rect')
         .style('fill', function (d) {
@@ -439,7 +452,7 @@ function drawGraphCallback () {
             return 1.0;
         })
         .each(function (d) {
-            if (d._id == activeBulbId)
+            if (d._id === activeBulbId)
                 d.radius = largeRadius;
             else
                 d.radius = smallRadius;
@@ -449,25 +462,11 @@ function drawGraphCallback () {
         .attr("rx", function (d) { return smallRadius; })
         .attr("ry", function (d) { return smallRadius; })
         .attr("width", function (d) { return 2*d.radius; })
-        .attr("height", function (d) { return 2*d.radius; });
-    node.selectAll('text')
-        .style('visibility', function (d) {
-            if (d._id == activeBulbId)
-                return "hidden";
-            else
-                return "visible";
-        });
-
+        .attr("height", function (d) { return 2*d.radius; })
     //
     // draw the metaball layer
     //
-
-    // start by clearing the scratch canvas
-    tempCanvas.clearRect(0, 0, width*downsample, height*downsample);
-    canvas.clearRect(0, 0, width, height);
-    // now draw a ball beneath each node
-    node
-        .each(function(d, i) {
+        .each(function(d) {
             var radius = 6*(d.radius);
 
             var workspaceIndex = visibleWorkspaces.indexOf(d.pathData.workspace);
@@ -537,10 +536,8 @@ function restartGraph() {
     nodeg.each(function (d) {
                 d.x = Math.random() * width;
                 d.y = Math.random() * height;
+                d.radius = smallRadius;
             });
-    node.each(function (d) {
-        d.radius = smallRadius;
-    });
     nodeg
         .append("rect") // set a bunch of default values
             .attr("x", function (d) { return -d.radius; })
