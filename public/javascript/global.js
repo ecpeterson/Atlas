@@ -1,11 +1,13 @@
 // Settings ====================================================================
 
-var width = 800,
-    height = 600,
+var width = 1000,
+    height = 800,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 150;
+var largeRadius = 300;
+
+var downsample = 0.25; // controls the quality of the workspace glow
 
 // Globals =====================================================================
 
@@ -27,7 +29,8 @@ var state = clickStates.SELECT;
 
 var svg = {};
 var canvas = {},
-    tempCanvas = {};
+    tempCanvas = {},
+    tempCanvasElt = {};
 var force = {};
 var color = {};
 var graph =
@@ -70,9 +73,10 @@ $(document).ready(function() {
                 .attr('height', height)
                 .node().getContext('2d');
     // we also need a background canvas to use as a scratch buffer
-    tempCanvas = document.createElement("canvas");
-    tempCanvas.width = width; tempCanvas.height = height;
-    tempCanvas = tempCanvas.getContext("2d");
+    tempCanvasElt = document.createElement("canvas");
+    tempCanvasElt.width = width*downsample;
+    tempCanvasElt.height = height*downsample;
+    tempCanvas = tempCanvasElt.getContext("2d");
 
     // built-in physics simulator for automatic graph layout
     force = d3.layout.force()
@@ -409,7 +413,7 @@ function drawGraphCallback () {
     node.selectAll('rect')
         .style('fill', function (d) {
             if (d._id == activeBulbId)
-                return 'red';
+                return 'white';
 
             if (shortHistory.indexOf(d._id) != -1 ||
                 d._id == 'historyDummyNode')
@@ -454,7 +458,8 @@ function drawGraphCallback () {
     //
 
     // start by clearing the scratch canvas
-    tempCanvas.clearRect(0, 0, width, height);
+    tempCanvas.clearRect(0, 0, width*downsample, height*downsample);
+    canvas.clearRect(0, 0, width, height);
     // now draw a ball beneath each node
     node
         .each(function(d, i) {
@@ -473,30 +478,34 @@ function drawGraphCallback () {
             var colorString = color.r + ', ' + color.g + ', ' + color.b;
 
             tempCanvas.beginPath();
-            var grad = tempCanvas.createRadialGradient(d.x, d.y, 1, d.x, d.y,
-                radius);
+            var grad = tempCanvas.createRadialGradient(
+                d.x*downsample, d.y*downsample, 1,
+                d.x*downsample, d.y*downsample, radius*downsample);
             grad.addColorStop(0, 'rgba(' + colorString + ', 1)');
             grad.addColorStop(1, 'rgba(' + colorString + ', 0)');
             tempCanvas.fillStyle = grad;
-            tempCanvas.arc(d.x, d.y, radius, 0, Math.PI*2);
+            tempCanvas.arc(d.x*downsample, d.y*downsample, radius*downsample,
+                0, Math.PI*2);
             tempCanvas.fill();
         });
 
     // smear it into metaballs
-    var imageData = tempCanvas.getImageData(0,0,width,height),
+    var imageData = tempCanvas.getImageData(
+            0,0,width*downsample,height*downsample),
         pix = imageData.data;
     
     for (var i = 0, n = pix.length; i < n; i += 4) {
         if (pix[i + 3] < metaballThreshold) {
-            pix[i + 3] /= 3;
+            pix[i + 3] /= 4;
 
-            if (pix[i + 3] > metaballThreshold / 4)
+            if (pix[i + 3] > metaballThreshold / 3)
                 pix[i + 3] = 0;
         }
     }
 
     // post smeared data to the display canvas
-    canvas.putImageData(imageData, 0, 0);
+    tempCanvas.putImageData(imageData, 0, 0);
+    canvas.drawImage(tempCanvasElt, 0, 0, width, height);
 }
 
 function restartGraph() {
@@ -535,7 +544,7 @@ function restartGraph() {
             .attr("ry", function (d) { return d.radius; })
             .attr("width", function (d) { return 2*d.radius; })
             .attr("height", function (d) { return 2*d.radius; })
-            .style("fill", "red")
+            .style("fill", "white")
             .style("stroke", "black")
             .attr("dx", 0)
             .attr("dy", 0);
@@ -571,9 +580,9 @@ function restartGraph() {
         .linkDistance(function (d) {
             if (d.source._id == activeBulbId ||
                 d.target._id == activeBulbId)
-                return 240;
+                return largeRadius*1.5;
             else
-                return 120;
+                return largeRadius/2;
         });
 
     link = link.data(graph.links); // we're going to reset the link data to this
@@ -759,17 +768,35 @@ function selectBulb(event, bulbId) {
         // edges (graph.links) to display. they start empty each time.
         graph.nodes = [];
         graph.links = [];
+        var historyChain = [];
         { // HISTORY and CENTER:
-            // first add the center node
-            graph.nodes.push(activeBulb);
+            // start by assembling the incoming history chain
+            if (bulbHistory.length > 0)
+                historyChain.push({ _id : "historyDummyNode",
+                                    title : "...",
+                                    pathData : { workspace: '' }});
+            historyChain.push(activeBulb);
 
-            // then, if there's a history, add that node too
-            if (bulbHistory.length > 0) {
-                graph.nodes.push({ _id : "historyDummyNode",
-                                 title : "...",
-                              pathData : { workspace: '' }});
-                graph.links.push({ source : "historyDummyNode",
-                                   target : activeBulb._id });
+            var i, j;
+            for (i = historyChain.length; i >= 0; i--)
+                for (j = i + 1; j < historyChain.length; j++) {
+                    if (historyChain[i]._id == historyChain[j]._id) {
+                        historyChain.splice(i, 1);
+                        break;
+                    }
+                }
+
+            // add those bulbs to the vertex collection
+            graph.nodes = graph.nodes.concat(historyChain);
+
+            // now iterate through these few vertices to draw in the edges
+            var i = 0;
+            for (i = 0; i < historyChain.length - 1; i++) {
+                var sourceNode = historyChain[i];
+                var targetNode = historyChain[i + 1];
+
+                graph.links.push({ source : sourceNode._id,
+                                   target : targetNode._id });
             }
         }
         { // OUTGOING:
