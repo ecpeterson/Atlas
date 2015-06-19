@@ -5,7 +5,8 @@ var width = 1000,
     metaballThreshold = 300;
 
 var smallRadius = 8;
-var largeRadius = 300;
+var smallerBigRadius = 150;
+var reallyBigRadius = 300;
 
 var downsample = 0.25; // controls the quality of the workspace glow
 
@@ -41,6 +42,7 @@ var graph =
 var link = {};
 var node = {};
 var visibleWorkspaces = [];
+var largeRadius = reallyBigRadius;
 
 var debug = 0;
 
@@ -192,16 +194,28 @@ $(document).ready(function() {
     $('textarea#bulbInfoText').on('keyup blur',
         function () { bulbTextNeedsRerender = 1; });
 
+    // place the text renderer in the middle of the screen
     var renderedText = $('#bulbInfoRenderedText'),
-        offset = renderedText.offset();
+        rootOffset = renderedText.offsetParent().offset();
     renderedText
         .attr('style', 'overflow: auto; position: relative')
         .height(2*largeRadius - 25)
         .width(2*largeRadius - 10)
         .offset({
-            top : (height/2 - largeRadius + offset.top + 5),
-            left : (width/2 - largeRadius + offset.left + 5)
+            top : (height/2 - largeRadius + rootOffset.top + 5),
+            left : (width/2 - largeRadius + rootOffset.left + 5)
         });
+
+    // place the resize button at the bottom-right of the node
+
+    var resizeButton = $('#bulbInfoResize');
+    resizeButton
+        .attr('style', 'position: relative')
+        .offset({
+            top : (height/2 + largeRadius + rootOffset.top - 19),
+            left: (width/2 + largeRadius + rootOffset.left - 12)
+        });
+    $('a#btnDisplayResize').on('click', resizeButtonFn);
 
     // call MathJaX periodically to render the bulb text
     setInterval(rerenderBulbText, 1000);
@@ -691,6 +705,40 @@ function safelyAddBulbTo(bulb, array) {
 }
 
 // User-triggerable functions ==================================================
+
+function resizeButtonFn(event) {
+    if (event)
+        event.preventDefault();
+
+    console.log('clicked');
+
+    largeRadius = (largeRadius == reallyBigRadius) ?
+                        smallerBigRadius : reallyBigRadius;
+
+    // place the text renderer in the middle of the screen
+    var renderedText = $('#bulbInfoRenderedText'),
+        rootOffset = renderedText.offsetParent().offset();
+    renderedText
+        .attr('style', 'overflow: auto; position: relative')
+        .height(2*largeRadius - 25)
+        .width(2*largeRadius - 10)
+        .offset({
+            top : (height/2 - largeRadius + rootOffset.top + 5),
+            left : (width/2 - largeRadius + rootOffset.left + 5)
+        });
+
+    // place the resize button at the bottom-right of the node
+
+    var resizeButton = $('#bulbInfoResize');
+    resizeButton
+        .attr('style', 'position: relative')
+        .offset({
+            top : (height/2 + largeRadius + rootOffset.top - 19),
+            left: (width/2 + largeRadius + rootOffset.left - 12)
+        });
+
+    restartGraph();
+}
 
 function toplevelButtonFn(event) {
     if (event)
