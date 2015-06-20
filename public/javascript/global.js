@@ -195,7 +195,7 @@ $(document).ready(function() {
         function () { bulbTextNeedsRerender = 1; });
 
     // place the text renderer in the middle of the screen
-    var renderedText = $('#bulbInfoRenderedText'),
+    var renderedText = $('div#panels'),
         rootOffset = renderedText.offsetParent().offset();
     renderedText
         .attr('style', 'overflow: auto; position: relative')
@@ -716,7 +716,7 @@ function resizeButtonFn(event) {
                         smallerBigRadius : reallyBigRadius;
 
     // place the text renderer in the middle of the screen
-    var renderedText = $('#bulbInfoRenderedText'),
+    var renderedText = $('div#panels'),
         rootOffset = renderedText.offsetParent().offset();
     renderedText
         .attr('style', 'overflow: auto; position: relative')
