@@ -15,13 +15,18 @@
         
         <div id="divSVG">
             <div id="panels">
-                <div id="panel1">
+                <div id="textPanel" class="divPanel">
                     <div id="bulbInfoRenderedText" style="overflow:auto;">
                     </div>
+                </div>
+                <div id="editPanel" class="divPanel">
+                    <textarea id="bulbInfoText" style="width:100%" rows=20></textarea>
                 </div>
             </div>
             <div id="bulbInfoResize">
                 <a href="#" id="btnDisplayResize" style="color:black">±</a>
+            </div>
+            <div id="panelSelector">
             </div>
         </div>
 
@@ -131,8 +136,6 @@
                 </td>
                 </tr>
                 </table>
-                <textarea id="bulbInfoText" style="width:100%" rows=20></textarea>
-                <br />
                 <a href="#" class="btn btn-default linkUpdateBulb">Save Active Bulb</a>
                 <a href="#" class="btn btn-default linkDeleteBulb">Delete Active Bulb</a>
             </fieldset>

@@ -27,6 +27,7 @@ var clickStates = {
     DEPOSSESS : 'DEPOSSESS'
 };
 var state = clickStates.SELECT;
+var panelState = 0;
 
 var svg = {};
 var canvas = {},
@@ -195,9 +196,9 @@ $(document).ready(function() {
         function () { bulbTextNeedsRerender = 1; });
 
     // place the text renderer in the middle of the screen
-    var renderedText = $('div#panels'),
-        rootOffset = renderedText.offsetParent().offset();
-    renderedText
+    var rootDiv = $('div#panels'),
+        rootOffset = rootDiv.offsetParent().offset();
+    rootDiv
         .attr('style', 'overflow: auto; position: relative')
         .height(2*largeRadius - 25)
         .width(2*largeRadius - 10)
@@ -216,6 +217,23 @@ $(document).ready(function() {
             left: (width/2 + largeRadius + rootOffset.left - 12)
         });
     $('a#btnDisplayResize').on('click', resizeButtonFn);
+
+    $('.divPanel').each(function (i, d) {
+        if (i == panelState)
+            $(this).css('display', 'inline');
+        else
+            $(this).css('display', 'none');
+
+        $('#panelSelector').append('<a href="#" rel="' + i + '" ' +
+            'class="panelSelectorButton"> • </a>');
+    });
+    $('#panelSelector')
+        .offset({top : (height/2 + largeRadius + rootOffset.top - 19),
+                 left: (width/2) + rootOffset.left})
+        .css('position', 'relative')
+        .css("text-anchor", "middle");
+    $('#panelSelector').on('click', 'a.panelSelectorButton',
+        panelSelectorClick)
 
     // call MathJaX periodically to render the bulb text
     setInterval(rerenderBulbText, 1000);
@@ -710,8 +728,6 @@ function resizeButtonFn(event) {
     if (event)
         event.preventDefault();
 
-    console.log('clicked');
-
     largeRadius = (largeRadius == reallyBigRadius) ?
                         smallerBigRadius : reallyBigRadius;
 
@@ -738,6 +754,21 @@ function resizeButtonFn(event) {
         });
 
     restartGraph();
+}
+
+function panelSelectorClick(event) {
+    if (event)
+        event.preventDefault();
+
+    panelState = $(this).attr('rel');
+    $('.divPanel').each(function (i, d) {
+        if (i == panelState)
+            $(this).css('display', 'inline');
+        else
+            $(this).css('display', 'none');
+    });
+
+    return;
 }
 
 function toplevelButtonFn(event) {
