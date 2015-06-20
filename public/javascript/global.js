@@ -143,10 +143,10 @@ $(document).ready(function() {
     //
     // remark: you must hook jQuery on a static page element, like the tbody
     // element, and then key on what you actually want in the second parameter.
-    $('#bulbInfo').on('click', 'a.linkDeleteBulb', deleteBulb);
+    $('#editPanel').on('click', 'a.linkDeleteBulb', deleteBulb);
 
     // when the 'update' button is clicked, call the JS routine below
-    $('#bulbInfo').on('click', 'a.linkUpdateBulb', updateBulb);
+    $('#editPanel').on('click', 'a.linkUpdateBulb', updateBulb);
 
     // when the parent permalinks are clicked, let the client choose the parents
     $('a.parentWorkspacePicker').on('click', pickParentWorkspace);
