@@ -765,6 +765,9 @@ function resizeButtonFn(event) {
         .css('position', 'relative')
         .css("text-anchor", "middle");
 
+    $('#bulbInfoText').attr('rows', largeRadius == reallyBigRadius ?
+        20 : 10);
+
     restartGraph();
 }
 
