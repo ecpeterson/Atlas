@@ -28,6 +28,7 @@ var clickStates = {
 };
 var state = clickStates.SELECT;
 var panelState = 0;
+var displayButton = {};
 
 var svg = {};
 var canvas = {},
@@ -228,6 +229,9 @@ $(document).ready(function() {
             'class="panelSelectorButton"> • </a>');
     });
     $('a.panelSelectorButton').each(function (i, d) {
+        if (i == 0)
+            displayButton = this;
+
         if (i == panelState)
             $(this).css('color', 'black');
         else
@@ -1028,6 +1032,8 @@ function selectBulb(event, bulbId) {
             $('#bulbInfoText').val(response.text);
             bulbTextNeedsRerender = Infinity;
             rerenderBulbText(); // cause an immediate re-render.
+
+            $(displayButton).trigger('click');
         });
     });
 }
