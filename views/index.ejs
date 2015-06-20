@@ -25,6 +25,73 @@
                     <a href="#" class="btn btn-default linkUpdateBulb">Save Active Bulb</a>
                     <a href="#" class="btn btn-default linkDeleteBulb">Delete Active Bulb</a>
                 </div>
+                <div id="dataPanel" class="divPanel">
+                    <table class="table-striped">
+                    <tr>
+                    <td>
+                    <strong>Resolved:</strong>
+                    </td>
+                    <td>
+                    <input id="bulbInfoResolved" type="checkbox" />
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Modification Time:</strong>
+                    </td>
+                    <td>
+                    <span id="bulbInfoModificationTime"></span>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Id:</strong>
+                    </td>
+                    <td>
+                    <span id="bulbInfoId"></span>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Owner:</strong>
+                    </td>
+                    <td>
+                    <span id="bulbInfoOwner"></span>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Contains:</strong>
+                    </td>
+                    <td>
+                    <ul>
+                        <span id="bulbInfoContainsNodes">
+                            <!-- This will get populated. -->
+                        </span>
+                    </ul>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Parents:</strong>
+                    </td>
+                    <td>
+                    <strong>(<a href="#" class="parentWorkspacePicker">Workspace</a>)</strong> <span id="bulbInfoParentsWorkspaceId"></span> <br />
+                    <strong>(<a href="#" class="parentContainerPicker">Container</a>)</strong> <span id="bulbInfoParentsContainerId"></span> <br />
+                    <strong>(Original)</strong> <span id="bulbInfoParentsOriginalId"></span>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td>
+                    <strong>Shares:</strong>
+                    </td>
+                    <td>
+                    <textarea id="bulbInfoShares" style="width:100%", rows="4">
+                    </textarea>
+                    </td>
+                    </tr>
+                    </table>
+                </div>
             </div>
             <div id="bulbInfoResize">
                 <a href="#" id="btnDisplayResize" style="color:black">±</a>
@@ -66,71 +133,7 @@
         <p>Data in highlighted node:</p>
         <div id="bulbInfo">
             <fieldset>
-                <table class="table-striped">
-                <tr>
-                <td>
-                <strong>Resolved:</strong>
-                </td>
-                <td>
-                <input id="bulbInfoResolved" type="checkbox" />
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Modification Time:</strong>
-                </td>
-                <td>
-                <span id="bulbInfoModificationTime"></span>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Id:</strong>
-                </td>
-                <td>
-                <span id="bulbInfoId"></span>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Owner:</strong>
-                </td>
-                <td>
-                <span id="bulbInfoOwner"></span>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Contains:</strong>
-                </td>
-                <td>
-                <ul>
-                    <span id="bulbInfoContainsNodes">
-                        <!-- This will get populated. -->
-                    </span>
-                </ul>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Parents:</strong>
-                </td>
-                <td>
-                <strong>(<a href="#" class="parentWorkspacePicker">Workspace</a>)</strong> <span id="bulbInfoParentsWorkspaceId"></span> <br />
-                <strong>(<a href="#" class="parentContainerPicker">Container</a>)</strong> <span id="bulbInfoParentsContainerId"></span> <br />
-                <strong>(Original)</strong> <span id="bulbInfoParentsOriginalId"></span>
-                </td>
-                </tr>
-                <tr>
-                <td>
-                <strong>Shares:</strong>
-                </td>
-                <td>
-                <textarea id="bulbInfoShares" style="width:100%", rows="4">
-                </textarea>
-                </td>
-                </tr>
-                </table>
+                
             </fieldset>
         </div>
     </div>
