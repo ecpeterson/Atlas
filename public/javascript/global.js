@@ -227,6 +227,12 @@ $(document).ready(function() {
         $('#panelSelector').append('<a href="#" rel="' + i + '" ' +
             'class="panelSelectorButton"> • </a>');
     });
+    $('a.panelSelectorButton').each(function (i, d) {
+        if (i == panelState)
+            $(this).css('color', 'black');
+        else
+            $(this).css('color', 'gray');
+    });
     $('#panelSelector')
         .offset({top : (height/2 + largeRadius + rootOffset.top - 19),
                  left: (width/2) + rootOffset.left})
@@ -753,6 +759,12 @@ function resizeButtonFn(event) {
             left: (width/2 + largeRadius + rootOffset.left - 12)
         });
 
+    $('#panelSelector')
+        .offset({top : (height/2 + largeRadius + rootOffset.top - 19),
+                 left: (width/2) + rootOffset.left})
+        .css('position', 'relative')
+        .css("text-anchor", "middle");
+
     restartGraph();
 }
 
@@ -762,11 +774,15 @@ function panelSelectorClick(event) {
 
     panelState = $(this).attr('rel');
     $('.divPanel').each(function (i, d) {
-        if (i == panelState)
+        if (i == panelState) {
             $(this).css('display', 'inline');
-        else
+        } else {
             $(this).css('display', 'none');
+        }
     });
+
+    $('a.panelSelectorButton').css('color', 'gray');
+    $(this).css('color', 'black');
 
     return;
 }
