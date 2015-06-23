@@ -31,3 +31,13 @@ canvas {
 rect {
 	fill: transparent;
 }
+
+img.toolButton {
+	height: 32px;
+	width: 32px;
+}
+
+span.horizSpacer {
+	display: inline-block;
+	width: 30px;
+}

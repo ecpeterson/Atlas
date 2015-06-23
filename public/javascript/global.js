@@ -1,12 +1,12 @@
 // Settings ====================================================================
 
 var width = 1000,
-    height = 800,
+    height = 750,
     metaballThreshold = 300;
 
 var smallRadius = 8;
 var smallerBigRadius = 150;
-var reallyBigRadius = 300;
+var reallyBigRadius = 290;
 
 var downsample = 0.25; // controls the quality of the workspace glow
 
@@ -215,6 +215,7 @@ $(document).ready(function() {
     var resizeButton = $('#bulbInfoResize');
     resizeButton
         .attr('style', 'position: relative')
+        .width(30)
         .offset({
             top : (height/2 + largeRadius + rootOffset.top - 19),
             left: (width/2 + largeRadius + rootOffset.left - 12)
@@ -773,6 +774,7 @@ function resizeButtonFn(event) {
     var resizeButton = $('#bulbInfoResize');
     resizeButton
         .attr('style', 'position: relative')
+        .width(30)
         .offset({
             top : (height/(transitioningToLarge ? 2 : 5)
                     + largeRadius + rootOffset.top - 19),

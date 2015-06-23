@@ -101,41 +101,42 @@
                     </table>
                 </div>
             </div>
-            <div id="bulbInfoResize">
+            <div id="bulbInfoResize" style="width:20px">
                 <a href="#" id="btnDisplayResize" style="color:black">±</a>
             </div>
             <div id="panelSelector" style="width:100px">
             </div>
         </div>
 
-        <p>Registered user functions:
+        <p>
+            <a href="#" class="btn btn-default" id="btnNewBulb"><img src="images/new-bulb.png" class="toolButton" title="New Bulb" alt="New Bulb" /></a>
+            <a href="#" class="btn btn-default" id="navigateButton"><img src="images/navigate.png" class="toolButton" title="Navigate..." alt="Navigate..." /></a>
+            <a href="#" class="btn btn-default" id="jostleButton"><img src="images/jostle.png" class="toolButton" title="Jostle" alt="Jostle" /></a>
+            <a href="#" class="btn btn-default" id="toplevelButton"><img src="images/add-workspace.png" class="toolButton" title="Add workspace nodes..." alt="Add workspace nodes..." /></a>
+
+            <span class="horizSpacer"></span>
+
+            <span id="stateButtons" style="display:inline-block">
+                <a href="#" class="btn btn-default" id="SELECTButton"><img src="images/select.png" class="toolButton" title="Select" alt="Select" /></a>
+                <a href="#" class="btn btn-default" id="LINKTOButton"><img src="images/link-to.png" class="toolButton" title="Link to target" alt="Link to target" /></a>
+                <a href="#" class="btn btn-default" id="DELINKTOButton"><img src="images/unlink-to.png" class="toolButton" title="Unlink to target" alt="Unlink from target" /></a>
+                <a href="#" class="btn btn-default" id="LINKFROMButton"><img src="images/link-from.png" class="toolButton" title="Link from target" alt="Link from target" /></a>
+                <a href="#" class="btn btn-default" id="DELINKFROMButton"><img src="images/unlink-from.png" class="toolButton" title="Unlink from target" alt="Unlink from target" /></a>
+                <a href="#" class="btn btn-default" id="POSSESSButton"><img src="images/possess.png" class="toolButton" title="Possess" alt="Possess" /></a>
+                <a href="#" class="btn btn-default" id="DEPOSSESSButton"><img src="images/depossess.png" class="toolButton" title="Depossess" alt="Depossess" /></a>
+            </span>
+        </p>
+
+        <p>
+            <a href="#" class="btn btn-default" id="clearHistoryButton">Clear History</a>
+            <a href="#" class="btn btn-default" id="duplicateNode">Duplicate Node: </a>
+            <input type="text" id="duplicateNodeInput" placeholder="Node ID" />
+
+            <span class="horizSpacer"></span>
 
             <a href="/workspace" class="btn btn-default" target="_blank">Manage Workspaces</a>
             <a href="/profile" class="btn btn-default"><span class="fa fa-user"></span> Examine user profile</a>
             <a href="/logout" class="btn btn-default"><span class="fa fa-user"></span> Logout</a>
-        </p>
-
-        <p>Utilities:
-
-            <a href="#" class="btn btn-default" id="btnNewBulb">New Bulb</a>
-            <a href="#" class="btn btn-default" id="navigateButton">Search...</a>
-            <a href="#" class="btn btn-default" id="clearHistoryButton">Clear History</a>
-            <a href="#" class="btn btn-default" id="jostleButton">Jostle</a>
-            <a href="#" class="btn btn-default" id="toplevelButton">Add Toplevel Nodes...</a>
-            <br />
-
-            <div id="stateButtons">
-                <a href="#" class="btn btn-default" id="SELECTButton">Select</a>
-                <a href="#" class="btn btn-default" id="LINKTOButton">Link to target</a>
-                <a href="#" class="btn btn-default" id="DELINKTOButton">Unlink to target</a>
-                <a href="#" class="btn btn-default" id="LINKFROMButton">Link from target</a>
-                <a href="#" class="btn btn-default" id="DELINKFROMButton">Unlink from target</a>
-                <a href="#" class="btn btn-default" id="POSSESSButton">Possess target</a>
-                <a href="#" class="btn btn-default" id="DEPOSSESSButton">Release target</a>
-            </div>
-
-            <a href="#" class="btn btn-default" id="duplicateNode">Duplicate Node: </a>
-            <input type="text" id="duplicateNodeInput" placeholder="Node ID" />
         </p>
     </div>
 </div>
