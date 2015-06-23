@@ -19,11 +19,9 @@ module.exports = function(app) {
 					return;
 				}
 
-				bulb.findPath(function (path) {
-					bulb = bulb.toObject();
-					bulb.pathData = path;
-					bulb.text = '';
-					res.send(bulb);
+				bulb.augmentForExport(function (obj) {
+					obj.text = '';
+					res.send(obj);
 				});
 			});
 		});
@@ -109,10 +107,8 @@ module.exports = function(app) {
 						}
 
 						var bulb = inbox.pop();
-						bulb.findPath(function(path) {
-							var b = bulb.toObject();
-							b.pathData = path;
-							outbox.push(b);
+						bulb.augmentForExport(function (obj) {
+							outbox.push(obj);
 							return aux(inbox, outbox);
 						});
 					};
@@ -232,10 +228,8 @@ module.exports = function(app) {
 				}
 
 				var bulb = inbox.pop();
-				bulb.findPath(function (path) {
-					var b = bulb.toObject();
-					b.pathData = path;
-					outbox.push(b);
+				bulb.augmentForExport(function (obj) {
+					outbox.push(obj);
 					aux(inbox, outbox);
 				});
 			}
@@ -294,11 +288,11 @@ module.exports = function(app) {
 					// if we made it here, we can read the bulb. build a
 					// truncated bulb object from it & push to the result list
 
-					bulb.findPath(function (path) {
-						resultList.push({ _id : bulbId,
-										  title : bulb.title,
-										  outgoingNodes : bulb.outgoingNodes,
-										  pathData : path });
+					bulb.augmentForExport(function (obj) {
+						resultList.push({ _id : obj._id,
+										  title : obj.title,
+										  outgoingNodes : obj.outgoingNodes,
+										  pathData : obj.pathData });
 						return aux(bulbList, resultList);
 					});
 				});

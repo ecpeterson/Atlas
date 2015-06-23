@@ -14,7 +14,8 @@ var bulbSchema = mongoose.Schema({
 	parentWorkspace : String,
 	parentContainer : String,
 	parentOriginal : String,
-	shares : [ String ] //,
+	shares : [ String ],
+	preamble : String //,
 	// BLOB of attachments?
 });
 
@@ -86,6 +87,20 @@ bulbSchema.methods.findPath = function(callback) {
 	}
 
 	return aux(this, result);
+};
+
+bulbSchema.methods.augmentForExport = function(callback) {
+	var bulb = this;
+
+	bulb.findPath(function (path) {
+		var ret = bulb.toObject();
+		ret.pathData = path;
+		callback(ret);
+
+		return;
+	});
+
+	return;
 };
 
 var Bulb = mongoose.model('Bulb', bulbSchema);
