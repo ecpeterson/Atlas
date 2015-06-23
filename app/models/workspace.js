@@ -7,7 +7,8 @@ var mongoose = require('mongoose');
 var workspaceSchema = mongoose.Schema({
 	title : { type : String, default : 'Default Workspace Title' },
 	text : String,
-	users : [ String ]
+	users : [ String ],
+	preamble : {type : String, default : '' }
 });
 
 // METHODS =====================================================================

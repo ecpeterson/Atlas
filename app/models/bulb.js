@@ -91,13 +91,50 @@ bulbSchema.methods.findPath = function(callback) {
 
 bulbSchema.methods.augmentForExport = function(callback) {
 	var bulb = this;
+	var Bulb = this.model('Bulb'),
+		Workspace = this.model('Workspace');
 
 	bulb.findPath(function (path) {
 		var ret = bulb.toObject();
 		ret.pathData = path;
-		callback(ret);
 
-		return;
+		function aux (pathList, preambleString) {
+			if (pathList.length == 0) {
+				ret.virulentPreamble = preambleString;
+				return callback(ret);
+			}
+
+			console.log(pathList);
+
+			return Bulb.findById(
+				new mongoose.Types.ObjectId(pathList.slice(-1)[0]),
+				function (err, pathBulb) {
+					if (err) // we did our best.
+						return callback(ret);
+
+					if (typeof(pathBulb.preamble) != "undefined")
+						preambleString += ('\n\n' + pathBulb.preamble);
+
+					// drop the last guy, recurse
+					return aux(pathList.slice(0, -1), preambleString);
+				});
+		}
+
+		if (path.workspace != '')
+			Workspace.findById(function (err, workspace) {
+				if (err) // we did our best.
+					return callback(ret);
+
+				if (type(workspace.preamble) != "undefined")
+					return aux(path.path, workspace.preamble);
+				else
+					return aux(path.path, '');
+			});
+		else
+			return aux(path.path, '');
+
+		// include a workspace reference
+		return aux(path.path, '');
 	});
 
 	return;
