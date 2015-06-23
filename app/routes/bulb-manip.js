@@ -175,6 +175,7 @@ module.exports = function(app) {
 						bulb.text = newBulb.text;
 					bulb.resolved = newBulb.resolved;
 					bulb.modificationTime = new Date();
+					bulb.preamble = newBulb.preamble;
 				}
 
 				// XXX: this ought to be validated.

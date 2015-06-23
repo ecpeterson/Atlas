@@ -144,10 +144,10 @@ $(document).ready(function() {
     //
     // remark: you must hook jQuery on a static page element, like the tbody
     // element, and then key on what you actually want in the second parameter.
-    $('#editPanel').on('click', 'a.linkDeleteBulb', deleteBulb);
+    $('#panels').on('click', 'a.linkDeleteBulb', deleteBulb);
 
     // when the 'update' button is clicked, call the JS routine below
-    $('#editPanel').on('click', 'a.linkUpdateBulb', updateBulb);
+    $('#panels').on('click', 'a.linkUpdateBulb', updateBulb);
 
     // when the parent permalinks are clicked, let the client choose the parents
     $('a.parentWorkspacePicker').on('click', pickParentWorkspace);
@@ -974,6 +974,9 @@ function selectBulb(event, bulbId) {
         $('#bulbInfoId').text(response._id);
         $('#bulbInfoType').text(response.type);
         $('#bulbInfoResolved')[0].checked = response.resolved;
+        $('#bulbInfoVirulentPreamble').text(response.virulentPreamble ?
+            response.virulentPreamble : '');
+        $('#bulbInfoPreamble').val(response.preamble ? response.preamble : '');
 
         // for the contained nodes
         $("#bulbInfoContainsNodes").html('');
@@ -1102,6 +1105,7 @@ function updateBulb(event) {
     freshBulb.resolved = $('#bulbInfoResolved')[0].checked;
     freshBulb.text = $('#bulbInfoText').val();
     freshBulb.shares = $('#bulbInfoShares').val().split(/\n/);
+    freshBulb.preamble = $('#bulbInfoPreamble').val();
 
     $.ajax({
         type : 'PUT',
