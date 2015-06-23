@@ -436,8 +436,13 @@ function drawGraphCallback () {
             // if we're the highlighted node, then move us to the middle
             if (d._id == activeBulbId) {
                 d.fixed = false;
-                d.x = d.px = width / 2;
-                d.y = d.py = height / 2;
+                if (largeRadius == reallyBigRadius) {
+                    d.x = d.px = width / 2;
+                    d.y = d.py = height / 2;
+                } else {
+                    d.x = d.px = width / 5;
+                    d.y = d.py = height / 5;
+                }
                 d.fixed = true;
                 return;
             }
@@ -445,7 +450,7 @@ function drawGraphCallback () {
             // if we live in the history, then put us into the up-left chain
             if (d._id == 'historyDummyNode') {
                 d.fixed = false;
-                d.x = d.px = width / 24;
+                d.x = d.px = width / 30;
                 d.y = d.py = height / 24;
                 d.fixed = true;
                 return;
@@ -741,6 +746,8 @@ function resizeButtonFn(event) {
     largeRadius = (largeRadius == reallyBigRadius) ?
                         smallerBigRadius : reallyBigRadius;
 
+    var transitioningToLarge = largeRadius == reallyBigRadius;
+
     // place the text renderer in the middle of the screen
     var renderedText = $('div#panels'),
         rootOffset = renderedText.offsetParent().offset();
@@ -749,8 +756,10 @@ function resizeButtonFn(event) {
         .height(2*largeRadius - 25)
         .width(2*largeRadius - 10)
         .offset({
-            top : (height/2 - largeRadius + rootOffset.top + 5),
-            left : (width/2 - largeRadius + rootOffset.left + 5)
+            top : (height/(transitioningToLarge ? 2 : 5)
+                    - largeRadius + rootOffset.top + 5),
+            left : (width/(transitioningToLarge ? 2 : 5)
+                    - largeRadius + rootOffset.left + 5)
         });
 
     // place the resize button at the bottom-right of the node
@@ -759,13 +768,17 @@ function resizeButtonFn(event) {
     resizeButton
         .attr('style', 'position: relative')
         .offset({
-            top : (height/2 + largeRadius + rootOffset.top - 19),
-            left: (width/2 + largeRadius + rootOffset.left - 12)
+            top : (height/(transitioningToLarge ? 2 : 5)
+                    + largeRadius + rootOffset.top - 19),
+            left: (width/(transitioningToLarge ? 2 : 5)
+                    + largeRadius + rootOffset.left - 12)
         });
 
     $('#panelSelector')
-        .offset({top : (height/2 + largeRadius + rootOffset.top - 19),
-                 left: (width/2) + rootOffset.left})
+        .offset({top : (height/(transitioningToLarge ? 2 : 5)
+                    + largeRadius + rootOffset.top - 19),
+                 left: width/(transitioningToLarge ? 2 : 5)
+                    + rootOffset.left})
         .css('position', 'relative')
         .css("text-anchor", "middle");
 
