@@ -26,6 +26,7 @@
                     <a href="#" class="btn btn-default linkDeleteBulb">Delete Active Bulb</a>
                 </div>
                 <div id="preamblePanel" class="divPanel">
+                    <b>Preamble:</b><br />
                     <textarea id="bulbInfoPreamble" style="width:100%" rows=7></textarea><br />
                     <a href="#" class="btn btn-default linkUpdateBulb">Save Active Bulb</a><br />
                     <b>Inherited preamble:</b><br />
@@ -142,15 +143,18 @@
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
 
 <script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-    extensions: ["tex2jax.js"],
-    jax: ["input/TeX", "output/HTML-CSS"],
-    tex2jax: {
-      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-      processEscapes: true
-    }
-  });
+    MathJax.Hub.Config({
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+        },
+        TeX: {
+            extensions: ["begingroup.js"]
+        }
+    });
 </script>
 
 <script src="http://d3js.org/d3.v3.min.js"></script> <!-- Need this for graph drawing -->
@@ -159,7 +163,7 @@
 
 <script type='text/javascript' src="http://code.jquery.com/ui/1.11.0/jquery-ui.min.js"> </script> <!-- Need this for the searchbox -->
 
-<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script> <!-- Need this to render LaTeX -->
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML,local/local"></script> <!-- Need this to render LaTeX -->
 
 <script src="/javascript/markdown.js"></script> <!-- Markdown renderer -->
 

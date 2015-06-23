@@ -10,6 +10,8 @@ var reallyBigRadius = 300;
 
 var downsample = 0.25; // controls the quality of the workspace glow
 
+var rerenderThreshold = 4; // counts in seconds
+
 // Globals =====================================================================
 
 var activeBulbId = '';
@@ -679,18 +681,14 @@ var rerenderBulbText;
         // we have to be edited but not-re-edited for threshold ticks before
         // we're willing to commit to a re-render.
         //
-        // TODO: make this threshold part of a configuration file.
-        // counts in seconds.
-        var threshold = 4;
-        if (bulbTextNeedsRerender < threshold) {
+        if (bulbTextNeedsRerender < rerenderThreshold) {
             bulbTextNeedsRerender += 1;
             return;
         }
 
         bulbTextNeedsRerender = 0;
 
-        var content = '**' + $('#bulbInfoTitle').val() + '**' +
-                      '\n\n' + textSource.val();
+        var content = textSource.val();
 
         content = content.replace(/---/g, '—');
         content = content.replace(/--/g, '–');
@@ -715,6 +713,14 @@ var rerenderBulbText;
         for (index = 0; index < mathjaxArray.length; index++) {
             content = content.replace('MATH'+index+'NODE', mathjaxArray[index]);
         }
+
+        content = '<p><strong>' + $('#bulbInfoTitle').val() + '</strong></p>' +
+            '<div style="display:none"> $\\begingroup ' +
+            activeBulb.virulentPreamble + ' ' + $('#bulbInfoPreamble').val() +
+            '$</div>' + content +
+            ' <div style="display:none">$\\endgroup$</div>';
+
+        console.log(content);
 
         textTarget.html(content);
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, "bulbInfoRenderedText"]);
