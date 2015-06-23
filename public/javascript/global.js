@@ -369,15 +369,20 @@ function constrainGraph () {
                 if (adx < mdx  &&  ady < mdy) {          
                     var l = Math.sqrt(dx * dx + dy * dy);
             
-                    var scalar = 0.05;
+                    var scalar = mdx / (largeRadius + smallRadius) / 6;
                     var lx = (adx - mdx) / l * 0.5 * scalar;
                     var ly = (ady - mdy) / l * 0.5 * scalar;
                     
 
 
                     // choose the direction with less overlap
-                    if (lx > ly  &&  ly > 0) lx = 0;
-                        else if (ly > lx  &&  lx > 0) ly = 0;
+                    if (lx > ly  &&  ly > 0) {
+                        lx = 0;
+                        ly = 1;
+                    } else if (ly > lx  &&  lx > 0) {
+                        lx = 1;
+                        ly = 0;
+                    }
 
 
                     dx *= lx; dy *= ly;
@@ -400,6 +405,13 @@ function constrainGraph () {
     i = 0;
     while (++i < n) {
         var node = graph.nodes[i];
+
+        if (activeBulb.outgoingNodes.indexOf(node._id) == -1) {
+            // this bulb is outside the main box.
+        } else {
+            // this bulb is inside the main box.
+        }
+
         if (node.x < 0)
             node.x = 0;
         else if (node.x > width)
