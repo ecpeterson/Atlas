@@ -182,6 +182,9 @@ $(document).ready(function() {
         bulbHistory = [];
         selectBulb(null, activeBulbId);
     });
+
+    $('a#searchButton').on('click', searchButtonClicked);
+
     setClickState(clickStates.SELECT)(null);
 
     // hook up the graph state buttons.
@@ -732,8 +735,6 @@ var rerenderBulbText;
             activeBulb.virulentPreamble + ' ' + $('#bulbInfoPreamble').val() +
             '$</div>' + content +
             ' <div style="display:none">$\\endgroup$</div>';
-
-        console.log(content);
 
         textTarget.html(content);
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, "bulbInfoRenderedText"]);
@@ -1340,5 +1341,21 @@ function duplicateNodeFn (event) {
         }
 
         selectBulb(null, response._id);
+    });
+}
+
+function searchButtonClicked (event) {
+    if (event)
+        event.preventDefault();
+
+    return $.post(
+        '/search',
+        { str : $('#searchTextField').val() },
+        function (bulbs) {
+            bulbs.forEach( function (bulb) {
+                safelyAddBulbTo(bulb, graph.nodes);
+            });
+
+            return restartGraph();
     });
 }
