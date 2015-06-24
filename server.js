@@ -40,7 +40,7 @@ var transporter = nodemailer.createTransport({
 // pass the passport object in for configuration
 require('./app/misc/passport')(app, passport);
 
-app.use(morgan('[:date[web]] :method :url :status :response-time ms - :res[content-length]'));  // log a lot
+app.use(morgan('[:date[web]] :remote-addr :method :url :status :response-time ms - :res[content-length]'));  // log a lot
 app.use(cookieParser()); // used for auth
 app.use(bodyParser.json());   // used to read info from forms
 app.use(bodyParser.urlencoded({extended: true}));
