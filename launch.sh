@@ -4,7 +4,10 @@ mongod --dbpath ./data &>/dev/null &
 
 pid=$!
 
-npm start
+while true
+do
+	npm start 2>>stderr.log
+done
 
 kill $pid
 
