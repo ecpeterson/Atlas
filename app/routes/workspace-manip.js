@@ -92,9 +92,6 @@ module.exports = function(app) {
 			// now go through and match new user emails to user ids
 			if (newWorkspace.newUsers && newWorkspace.newUsers.length != 0) {
 				function aux(inbox, outbox) {
-					console.log('inbox: ' + JSON.stringify(inbox));
-					console.log('outbox: ' + JSON.stringify(outbox));
-					console.log('---');
 					if (inbox.length == 0) {
 						workspace.users = workspace.users.concat(outbox);
 						return workspace.save(function (err) {
