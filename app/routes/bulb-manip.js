@@ -443,14 +443,15 @@ module.exports = function(app) {
 	});
 
 	// SEARCHES FOR NODES CONTAINING A FIXED SUBSTRING =========================
-	app.get('/search', app.isLoggedIn, function(req, res) {
+	app.post('/search', app.isLoggedIn, function(req, res) {
+		console.log('req.body: ' + JSON.stringify(req.body));
 		Bulb.find(
 			{
-				title: new RegExp(req.params.str, "i")
+				title: new RegExp(req.body.str, "i")
 			}, function(err1, titleDocs) {
 			return Bulb.find(
 				{
-					text: new RegExp(req.params.str, "i")
+					text: new RegExp(req.body.str, "i")
 				}, function(err2, bodyDocs) {
 					var docs = [];
 					if (!err1 && titleDocs)
