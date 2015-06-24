@@ -286,7 +286,9 @@ module.exports = function(app) {
 			}
 
 			// otherwise...
-			res.json(bulb);
+			return bulb.augmentForExport(function (b) {
+				res.json(b);
+			});
 		});
 	});
 
