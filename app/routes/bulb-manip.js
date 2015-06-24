@@ -135,12 +135,46 @@ module.exports = function(app) {
 					return;
 				}
 
-				Bulb.remove({ _id : req.params.id }, function (err) {
-					res.send({ msg : err });
+				// if this node had children, they all need to be moved into the
+				// parent container. do this in parallel with the deletion.
+				var parentContainer = bulb.parentContainer,
+					parentWorkspace = bulb.parentWorkspace;
+				Bulb.find({ parentContainer : req.params.id },
+						function(err, bulbs) {
+					if (err || !bulbs) {
+						return;
+					}
+
+					return bulbs.forEach(function (b) {
+						// set their parent container to our old container
+						if (parentContainer) {
+							b.parentContainer = parentContainer;
+							return b.save();
+						} else if (parentWorkspace && !b.parentWorkspace) {
+							b.parentWorkspace = parentWorkspace;
+							return b.save();
+						} else
+							return;
+					});
 				});
 
-				// XXX: if this node had children, they all need to be moved
-				// into the parent container.
+				// if this node received any pointers, remove them
+				Bulb.find({ outgoingNodes : bulb._id }, function(err, bulbs) {
+					if (err || !bulbs)
+						return;
+
+					return bulbs.forEach(function (b) {
+						b.outgoingNodes = b.outgoingNodes.filter(function (n) {
+							return n != req.params.id;
+						});
+						return b.save();
+					});
+				});
+
+				// actually delete the bulb we were supposed to delete.
+				Bulb.remove({ _id : req.params.id }, function (err) {
+					return res.send({ msg : err });
+				});
 			});
 		});
 	});
