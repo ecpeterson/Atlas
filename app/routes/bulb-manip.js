@@ -441,4 +441,45 @@ module.exports = function(app) {
 			}
 		})
 	});
+
+	// SEARCHES FOR NODES CONTAINING A FIXED SUBSTRING =========================
+	app.get('/search', app.isLoggedIn, function(req, res) {
+		Bulb.find(
+			{
+				title: new RegExp(req.params.str, "i")
+			}, function(err1, titleDocs) {
+			return Bulb.find(
+				{
+					text: new RegExp(req.params.str, "i")
+				}, function(err2, bodyDocs) {
+					var docs = [];
+					if (!err1 && titleDocs)
+						docs = docs.concat(titleDocs);
+					if (!err2 && bodyDocs)
+						docs = docs.concat(bodyDocs);
+
+					function aux(inbox, outbox) {
+						if (inbox.length == 0 ||
+							outbox.length >= 20) {
+							return res.send(outbox);
+						}
+
+						var bulb = inbox[0];
+						inbox = inbox.slice(1);
+
+						return bulb.hasReadAccess(req.user._id, function (ans) {
+							if (!ans)
+								return aux(inbox, outbox);
+
+							bulb.augmentForExport(function (b) {
+								outbox.push(b);
+								return aux(inbox, outbox);
+							});
+						});
+					}
+
+					return aux(docs, []);
+				});
+		});
+	});
 };
