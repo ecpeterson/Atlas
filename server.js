@@ -21,6 +21,7 @@ var morgan = require('morgan'),
     session = require('express-session');
 
 var configDB = require('./config/database.js');
+var configPASSPORT = require('./config/passport.js');
 
 // CONFIGURATION ==============================================================
 
@@ -37,7 +38,7 @@ var transporter = nodemailer.createTransport({
 });
 
 // pass the passport object in for configuration
-require('./config/passport')(app, passport);
+require('./app/misc/passport')(app, passport);
 
 app.use(morgan('[:date[web]] :method :url :status :response-time ms - :res[content-length]'));  // log a lot
 app.use(cookieParser()); // used for auth
@@ -48,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public'))); // permit static files
 
 // secret used by passport
 app.use(session({
-	secret : 'temporarysecretpleasechangeme'
+	secret : configPASSPORT.secret
 }));
 app.use(passport.initialize());
 app.use(passport.session()); // this gives persistent login sessions
