@@ -41,3 +41,9 @@ span.horizSpacer {
 	display: inline-block;
 	width: 30px;
 }
+
+ul#users {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}

@@ -3,6 +3,7 @@
 
 var Workspace = require('../models/workspace.js');
 var Bulb = require('../models/bulb.js');
+var User = require('../models/user.js');
 
 module.exports = function(app) {
 	// USER INTERFACE TO WORKSPACES ============================================
@@ -88,13 +89,49 @@ module.exports = function(app) {
 			if (newWorkspace.text)
 				workspace.text = newWorkspace.text;
 
+			// now go through and match new user emails to user ids
+			if (newWorkspace.newUsers && newWorkspace.newUsers.length != 0) {
+				function aux(inbox, outbox) {
+					console.log('inbox: ' + JSON.stringify(inbox));
+					console.log('outbox: ' + JSON.stringify(outbox));
+					console.log('---');
+					if (inbox.length == 0) {
+						workspace.users = workspace.users.concat(outbox);
+						return workspace.save(function (err) {
+							if (err) {
+								res.send({ msg : err });
+								return;
+							}
+
+							return res.json(workspace);
+						});
+					}
+
+					// otherwise, there's still more work to do.
+					var thisUserEmail = inbox[0];
+					inbox = inbox.slice(1);
+					return User.findOne(
+						{ 'local.email' : thisUserEmail },
+						function(err, user) {
+							if (err || !user) {
+								return aux(inbox, outbox);
+							}
+
+							outbox.push(user._id);
+							return aux(inbox, outbox);
+						});
+				}
+
+				return aux(newWorkspace.newUsers, []);
+			}
+
 			workspace.save(function (err) {
 				if (err) {
 					res.send({ msg : err });
 					return;
 				}
 
-				res.json(workspace);
+				return res.json(workspace);
 			});
 		});
 	});

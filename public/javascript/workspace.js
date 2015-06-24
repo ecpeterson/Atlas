@@ -19,6 +19,12 @@ $(document).ready(function() {
 	// power the 'Delete' buttons
 	$('tbody').on('click', 'tr td a#deleteBtn', deleteRow);
 
+	// power the 'add new user' buttons
+	$('tbody').on('click', 'tr td ul#users a#addUserBtn', addUserBtnFn);
+
+	// power the 'delete existing user' buttons
+	$('tbody').on('click', 'tr td ul#users span a#delUserBtn', delUserBtnFn);
+
 	// render the table for the first time
 	renderTable();
 });
@@ -31,15 +37,18 @@ function populateRow(workspace) {
 	var titleText = tableRow.find('#title');
 	titleText.val(workspace.title);
 
-	var usersTextarea = tableRow.find('#users');
+	var usersList = tableRow.find('#users span');
 	var usersString = '';
 	$.each(workspace.users, function (index) {
 		var userId = workspace.users[index];
-		if (usersString)
-			usersString += '\n';
-		usersString += userId;
+		$.getJSON('/user/' + userId, function (user) {
+			usersList.append(
+				'<li rel="ALREADYADDED"><a href="#" ' +
+				'class="btn btn-default btn-sm" rel="' + userId + '" ' +
+				'id="delUserBtn">–</a> ' + user.name + ' (' + user.email +
+				')</li>');
+		});
 	});
-	usersTextarea.val(usersString);
 }
 
 // User-triggerable functions ==================================================
@@ -67,8 +76,10 @@ function renderTable(event) {
 			var rowString = '<tr id="RowID' + workspace._id + '">';
 			rowString += '<td><input id="title" type="text" ' +
 						 'placeholder="Title" /></td>';
-			rowString += '<td><textarea id="users" style="width:100%" rows=3>' +
-						 '</textarea></td>';
+			rowString += '<td><ul id="users"><span></span>' +
+						 '<li><a href="#" class="btn btn-default btn-sm" ' +
+						 'id="addUserBtn" rel="' + workspace._id + '">+</a>' +
+						 '</li></ul></td>';
 			rowString += '<td><a href="#" class="btn btn-default btn-sm" ' +
 						 'id="saveBtn" rel="' + workspace._id +
 						 '">Save</a>';
@@ -92,13 +103,26 @@ function saveRow(event) {
 	var workspaceId = $(this).attr('rel');
 	var tableRow = $('#tableEntries tr#RowID' + workspaceId);
 	var titleText = tableRow.find('#title');
-	var usersTextarea = tableRow.find('#users');
+	var usersList = $(this).parents('tr').find('span li');
 
 	// construct a new workspace object to JSONify
 	var freshWorkspace = {};
 	freshWorkspace.title = titleText.val();
-	freshWorkspace.users = usersTextarea.val().split(/\n/);
 	freshWorkspace.text = '';
+
+	// assemble users we already have IDs for
+	freshWorkspace.users = usersList.filter(function (i, e) {
+			return $(e).attr('rel') == 'ALREADYADDED';
+		}).map(function (i, e) {
+			return $(e).find('#delUserBtn').attr('rel');
+		}).toArray();
+
+	// also assemble users we don't yet have IDs for
+	freshWorkspace.newUsers = usersList.filter(function (i, e) {
+			return $(e).attr('rel') == 'NOTYETADDED';
+		}).map(function (i, e) {
+			return $(e).find('#userEmail').val();
+		}).toArray();
 
 	$.ajax({
 		type : 'PUT',
@@ -151,4 +175,30 @@ function newWorkspace(event) {
 
 		renderTable();
 	});
+}
+
+function addUserBtnFn(event) {
+	if (event)
+		event.preventDefault();
+
+	var workspaceId = $(this).attr('rel');
+	var tableRow = $('#tableEntries tr#RowID' + workspaceId);
+
+	var usersList = tableRow.find('#users span');
+	var usersString =  '<li rel="NOTYETADDED"><a href="#" ' +
+					   'class="btn btn-default btn-sm" id="delUserBtn">–</a>' +
+					   '<input id="userEmail" type="text" ' + 
+					   'placeholder="User email address" /></li>';
+	usersList.append(usersString);
+
+	return;
+}
+
+function delUserBtnFn(event) {
+	if (event)
+		event.preventDefault();
+
+	$(this).parents('li').remove();
+	
+	return;
 }
