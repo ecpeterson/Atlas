@@ -1,4 +1,4 @@
 data/*
 node_modules
 atlas.sublime*
-npm-debug.log
+*.log
