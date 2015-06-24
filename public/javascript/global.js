@@ -379,12 +379,12 @@ function constrainGraph () {
 
 
                     // choose the direction with less overlap
-                    if (lx > ly  &&  ly > 0) {
-                        lx = 0;
-                        ly = 1;
-                    } else if (ly > lx  &&  lx > 0) {
-                        lx = 1;
-                        ly = 0;
+                    if (lx > ly) {
+                        lx *= 0.2;
+                        ly *= 0.8;
+                    } else if (ly > lx) {
+                        lx *= 0.8;
+                        ly *= 0.2;
                     }
 
 
