@@ -197,6 +197,10 @@ $(document).ready(function() {
         }
     }
 
+    // hook up the noncollaborative share buttons
+    $('ul#users li a#addUserBtn').on('click', addUserBtnClicked);
+    $('ul#users span').on('click', 'li a#delUserBtn', delUserBtnClicked);
+
     // when new text is entered, make mathjax rerender it.
     $('textarea#bulbInfoText').on('keyup blur',
         function () { bulbTextNeedsRerender = 1; });
@@ -864,7 +868,7 @@ function newBulb(event) {
         function(response) {
             // a successful response is a blank response.
             if (response.msg) {
-                alert('Error: ' + response.msg);
+                alert('Error: ' + JSON.stringify(response.msg));
             }
 
             safelyAddBulbTo(response, graph.nodes);
@@ -904,7 +908,7 @@ function selectBulb(event, bulbId) {
     // now we actually need the contents of the current bulb, so grab it.
     $.get('/bulb/' + activeBulbId, function(response) {
         if (response.msg) {
-            alert('Error: ' + response.msg);
+            alert('Error: ' + JSON.stringify(response.msg));
             return;
         }
 
@@ -1047,17 +1051,21 @@ function selectBulb(event, bulbId) {
             $('#bulbInfoParentsOriginalId').text('None.');
         }
         
-        var sharesText = '';
+        $('ul#users span').empty();
         $.each(response.shares, function (index) {
-            if (sharesText)
-                sharesText += '\n';
-            sharesText += response.shares[index];
+            // add an <li> item to the users list
+            $.getJSON('/user/' + response.shares[index], function (user) {
+                $('ul#users span').append(
+                    '<li rel="ALREADYADDED"><a href="#" ' +
+                    'class="btn btn-default btn-sm" rel="' +
+                    response.shares[index] + '" ' + 'id="delUserBtn">–</a> ' +
+                    user.name + ' (' + user.email + ')</li>');
+            });
         });
-        $('#bulbInfoShares').val(sharesText);
 
         $.getJSON('/user/' + response.ownerId, function (userinfo) {
             if (userinfo.msg) {
-                alert('Error: ' + userinfo.msg);
+                alert('Error: ' + JSON.stringify(userinfo.msg));
                 return;
             }
             $('#bulbInfoOwner').html(userinfo.name + ' (<a href="mailto:' +
@@ -1095,7 +1103,7 @@ function deleteBulb(event) {
         url : '/bulb/' + activeBulbId
     }).done(function(response) {
         if (response.msg)
-            alert('Error: ' + response.msg);
+            alert('Error: ' + JSON.stringify(response.msg));
 
         activeBulbId = '';
         activeBulb = {};
@@ -1125,8 +1133,23 @@ function updateBulb(event) {
     freshBulb.title = $('#bulbInfoTitle').val();
     freshBulb.resolved = $('#bulbInfoResolved')[0].checked;
     freshBulb.text = $('#bulbInfoText').val();
-    freshBulb.shares = $('#bulbInfoShares').val().split(/\n/);
     freshBulb.preamble = $('#bulbInfoPreamble').val();
+
+    // assemble noncollaborative share users we already have IDs for
+    freshBulb.shares = $('ul#users span li').filter(function (i, e) {
+            return $(e).attr('rel') == 'ALREADYADDED';
+        }).map(function (i, e) {
+            return $(e).find('#delUserBtn').attr('rel');
+        }).toArray();
+
+    // also assemble users we don't yet have IDs for
+    freshBulb.newShares = $('ul#users span li').filter(function (i, e) {
+            return $(e).attr('rel') == 'NOTYETADDED';
+        }).map(function (i, e) {
+            return $(e).find('#userEmail').val();
+        }).toArray();
+
+    console.log('is this being called twice somehow?');
 
     $.ajax({
         type : 'PUT',
@@ -1135,7 +1158,7 @@ function updateBulb(event) {
         dataType : 'JSON'
     }).done(function(response) {
         if (response.msg) {
-            alert('Error: ' + response.msg);
+            alert('Error: ' + JSON.stringify(response.msg));
             // don't throw out the user's changes if we failed to commit.
             return;
         }
@@ -1322,7 +1345,7 @@ function syncBulbWithOriginal(event) {
 
     $.post('/bulb/' + activeBulbId + '/sync', function (response) {
         if (response.msg)
-            alert('Error: ' + response.msg);
+            alert('Error: ' + JSON.stringify(response.msg));
         
         selectBulb(null, activeBulbId);
     });
@@ -1336,7 +1359,7 @@ function duplicateNodeFn (event) {
 
     $.post('/bulb/' + nodeId + '/copy', function (response) {
         if (response.msg) {
-            alert('Error: ' + response.msg);
+            alert('Error: ' + JSON.stringify(response.msg));
             return;
         }
 
@@ -1358,4 +1381,27 @@ function searchButtonClicked (event) {
 
             return restartGraph();
     });
+}
+
+function addUserBtnClicked (event) {
+    if (event)
+        event.preventDefault();
+
+    var usersList = $('ul#users span');
+    var usersString =  '<li rel="NOTYETADDED"><a href="#" ' +
+                       'class="btn btn-default btn-sm" id="delUserBtn">–</a>' +
+                       '<input id="userEmail" type="text" ' + 
+                       'placeholder="User email address" /></li>';
+    usersList.append(usersString);
+
+    return;
+}
+
+function delUserBtnClicked (event) {
+    if (event)
+        event.preventDefault();
+
+    $(this).parents('li').remove();
+
+    return;
 }

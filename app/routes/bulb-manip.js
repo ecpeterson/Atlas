@@ -2,6 +2,7 @@
 // app/routes/bulb-manip.js
 
 var Bulb = require('../models/bulb.js');
+var User = require('../models/user.js');
 
 module.exports = function(app) {
 	// REQUEST INDIVIDUAL BULB DATA ============================================
@@ -220,14 +221,38 @@ module.exports = function(app) {
 				bulb.parentWorkspace = newBulb.parentWorkspace;
 				bulb.parentOriginal = newBulb.parentOriginal;
 
-				bulb.shares = newBulb.shares;
+				// new user shares now need to be integrated.
 
-				bulb.save(function(err) {
-					if (err)
-						res.send({ msg : err });
+				function aux(inbox, outbox) {
+					// if we're out of work, then write the bulb out.
+					if (inbox.length == 0) {
+						bulb.shares = outbox;
 
-					res.json(bulb);
-				});
+						return bulb.save(function(err) {
+							if (err)
+								return res.send({ msg : err });
+
+							return res.json(bulb);
+						});
+					}
+
+					// if we're not out of work, then work.
+					var userEmail = inbox[0];
+					inbox = inbox.slice(1);
+					return User.findOne(
+						{ 'local.email' : userEmail },
+						function(err, user) {
+							if (err || !user) {
+								return aux(inbox, outbox);
+							}
+
+							outbox.push(user._id);
+							return aux(inbox, outbox);
+						});
+				}
+
+				return aux(newBulb.newShares ? newBulb.newShares : [],
+						   newBulb.shares ? newBulb.shares : []);
 			});
 		});
 	});
@@ -237,7 +262,6 @@ module.exports = function(app) {
 		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
 			// check for errors
 			if (err || !bulbs) {
-				console.log('error: ' + err);
 				res.send({ msg : err });
 				return;
 			}
