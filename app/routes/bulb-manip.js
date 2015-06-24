@@ -446,7 +446,6 @@ module.exports = function(app) {
 
 	// SEARCHES FOR NODES CONTAINING A FIXED SUBSTRING =========================
 	app.post('/search', app.isLoggedIn, function(req, res) {
-		console.log('req.body: ' + JSON.stringify(req.body));
 		Bulb.find(
 			{
 				title: new RegExp(req.body.str, "i")
