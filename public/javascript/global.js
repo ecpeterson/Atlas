@@ -122,15 +122,6 @@ $(document).ready(function() {
     // positions with the SVG elements, thereby displaying the changes.
     force.on('tick', drawGraphCallback);
 
-    //// Pull down the bulb data
-    $.getJSON('/toplevel', function(data) {
-        if (data.length > 0) {
-            // tell D3 to start running the simulation with the blank tables
-            activeBulb = {}; activeBulbId = '';
-            selectBulb(null, data[0]._id);
-        }
-    });
-
     //// Set up button hooks
 
     // when the 'add' button is clicked, call the JS routine below
@@ -257,6 +248,18 @@ $(document).ready(function() {
 
     // call MathJaX periodically to render the bulb text
     setInterval(rerenderBulbText, 1000);
+
+
+    //// Pull down the bulb data
+    $.getJSON('/toplevel', function(data) {
+        if (data.length > 0) {
+            // tell D3 to start running the simulation with the blank tables
+            activeBulb = {}; activeBulbId = '';
+            selectBulb(null, data[0]._id);
+        } else {
+            $('#panelOverlay').css('display', 'none');
+        }
+    });
 });
 
 // Utility functions ===========================================================
@@ -413,7 +416,8 @@ function constrainGraph () {
     while (++i < n) {
         var node = graph.nodes[i];
 
-        if (activeBulb.outgoingNodes.indexOf(node._id) == -1) {
+        if (activeBulb.outgoingNodes &&
+            activeBulb.outgoingNodes.indexOf(node._id) == -1) {
             // this bulb is outside the main box.
         } else {
             // this bulb is inside the main box.
@@ -885,6 +889,12 @@ function selectBulb(event, bulbId) {
     if (!bulbId)
         bulbId = $(this).attr('rel');
 
+    // if we don't have an active bulb, then get the panels out of the way
+    if (!bulbId)
+        $('#panelOverlay').css('display', 'none');
+    else
+        $('#panelOverlay').css('display', 'inline');
+
     // update the history array
     if (activeBulbId == bulbId) {
         // we're not moving, just refreshing. do nothing.
@@ -1115,6 +1125,11 @@ function deleteBulb(event) {
                 if (data.length > 0) {
                     activeBulb = {}; activeBulbId = '';
                     selectBulb(null, data[0]._id);
+                } else {
+                    activeBulb = {}; activeBulbId = '';
+                    $('#panelOverlay').css('display', 'none');
+                    graph.nodes = [];
+                    restartGraph();
                 }
             });
         }
