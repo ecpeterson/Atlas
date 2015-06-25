@@ -1284,7 +1284,7 @@ function releasePossession(targetBulbId) {
         } else if (activeBulb.parentWorkspace && !targetBulb.parentWorkspace) {
             targetBulb.parentWorkspace = activeBulb.parentWorkspace;
         } else {
-            targetBulb.parentWorkspace = '';
+            targetBulb.parentContainer = '';
         }
 
         $.ajax({
