@@ -51,3 +51,7 @@ Eventually we'll want to render these nodes nicely. Matt Pancia says that D3 off
 One of the tutorials also suggested the following nice book:
 
     http://www.amazon.com/JavaScript-Good-Parts-Douglas-Crockford/dp/0596517742 .
+
+This is a nice article about building interfaces of your own which are hiddenly asynchronous, à la Mongoose:
+
+    https://codewords.recurse.com/issues/three/pseudosynchronous-javascript/ .
