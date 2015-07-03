@@ -1164,8 +1164,6 @@ function updateBulb(event) {
             return $(e).find('#userEmail').val();
         }).toArray();
 
-    console.log('is this being called twice somehow?');
-
     $.ajax({
         type : 'PUT',
         url : '/bulb/' + activeBulbId,
