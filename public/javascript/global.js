@@ -735,7 +735,7 @@ var rerenderBulbText;
 
         content = markdown.toHTML(markdownContent);
         for (index = 0; index < mathjaxArray.length; index++) {
-            content = content.replace('MATH'+index+'NODE', mathjaxArray[index]);
+            content = content.replace(' MATH'+index+'NODE ', mathjaxArray[index]);
         }
 
         content = '<p><strong>' + $('#bulbInfoTitle').val() + '</strong></p>' +
