@@ -103,7 +103,6 @@ bulbSchema.methods.augmentForExport = function(callback) {
 		function aux (pathList, preambleString) {
 			if (pathList.length == 0) {
 				ret.virulentPreamble = preambleString;
-				console.log("we're returning " + JSON.stringify(ret));
 				return callback(ret);
 			}
 
