@@ -11,6 +11,45 @@ module.exports = function(app) {
 		res.render('workspace.ejs');
 	});
 
+	// REQUEST UNHOUSED BULBS OWNED BY USER ====================================
+	app.get('/toplevel', app.isLoggedIn, function(req, res) {
+		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
+			// check for errors
+			if (err || !bulbs) {
+				res.send({ msg : err });
+				return;
+			}
+
+			// remove all the bulbs that live in containers or workspaces.
+			bulbs = bulbs.filter(function (bulb) {
+				return (!bulb.parentContainer &&
+						!bulb.parentWorkspace);
+			});
+
+			// strip out the text from the bulbs. 'forEach' works over 'map'
+			// here because bulbs are *persistent objects* with mutable fields.
+			bulbs.forEach(function (bulb) {
+				bulb.text = '';
+			});
+
+			// augment all the bulbs with their path data
+			function aux (inbox, outbox) {
+				if (inbox.length == 0) {
+					// send the list back when done
+					res.send(outbox);
+					return;
+				}
+
+				var bulb = inbox.pop();
+				bulb.augmentForExport(function (obj) {
+					outbox.push(obj);
+					aux(inbox, outbox);
+				});
+			}
+			aux(bulbs, []);
+		});
+	});
+
 	// REQUEST LIST OF TOPLEVEL WORKSPACE CHILD NODES ==========================
 	app.get('/workspace/:id/children', app.isLoggedIn, function(req, res) {
 		Workspace.findById(req.params.id, function (err, workspace) {

@@ -103,6 +103,7 @@ bulbSchema.methods.augmentForExport = function(callback) {
 		function aux (pathList, preambleString) {
 			if (pathList.length == 0) {
 				ret.virulentPreamble = preambleString;
+				console.log("we're returning " + JSON.stringify(ret));
 				return callback(ret);
 			}
 
@@ -139,6 +140,83 @@ bulbSchema.methods.augmentForExport = function(callback) {
 	});
 
 	return;
+};
+
+bulbSchema.methods.convertToLaTeX = function(depth, callback) {
+	function titleToLabel(bulb) {
+		return bulb.title.replace(/[^a-z]/gi, '');
+	}
+
+	var Bulb = this.model('Bulb');
+
+	this.augmentForExport(function (bulb) {
+		var ret = "";
+
+		if (depth == 0) {
+			ret += "\\section{" + bulb.title + "}\n";
+		} else if (depth == 1) {
+			ret += "\\subsection{" + bulb.title + "}\n";
+		} else {
+			ret += "\\subsubsection{" + bulb.title + "}\n";
+		}
+
+		// give this thing a label
+		ret += "\\label{" + titleToLabel(bulb) + "}\n\n";
+
+		// start scoping the "preamble"
+		ret += "{\n";
+
+		ret += bulb.virulentPreamble + "\n\n";
+		ret += bulb.preamble + "\n\n";
+		ret += bulb.text + "\n\n";
+
+		// append references to nearby / child nodes
+		// convert bulb.outgoingNodes to bulb titles and labels
+		// find all bulbs in Bulb that have this bulb as a parent
+
+		return Bulb.find({
+			'parentContainer': bulb._id
+		}, function(err, childDocs) {
+			if (err) {
+				return "Export failed.";
+			}
+
+			ret += "\n\n\\noindent Children: ";
+
+			var i;
+
+			for (i = 0; i < childDocs.length; i++) {
+				ret += childDocs[i].title;
+				ret += " (\\Cref{" + titleToLabel(childDocs[i]) + "}), ";
+			}
+
+			return Bulb.find({
+			    '_id': { $in:
+			    	bulb.outgoingNodes.map(function(numericId) {
+			    		return new mongoose.Types.ObjectId(numericId);
+			    	})
+			    }
+			}, function(err, linkDocs){
+				// linkDocs contains all the *link* bulb objects
+				if (err) {
+					return "Export failed.";
+				}
+
+				ret += "\n\n\\noindent Link references: ";
+
+				var j;
+
+				for (j = 0; j < linkDocs.length; j++) {
+					ret += linkDocs[j].title;
+					ret += " (\\Cref{" + titleToLabel(linkDocs[j]) + "}), ";
+				}
+
+				// end scoping the "preamble"
+				ret += "\n\n}\n";
+				return callback(ret);
+			});
+		});
+	});
 };
 
 var Bulb = mongoose.model('Bulb', bulbSchema);

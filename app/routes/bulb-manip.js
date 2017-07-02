@@ -257,45 +257,6 @@ module.exports = function(app) {
 		});
 	});
 
-	// REQUEST UNHOUSED BULBS OWNED BY USER ====================================
-	app.get('/toplevel', app.isLoggedIn, function(req, res) {
-		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
-			// check for errors
-			if (err || !bulbs) {
-				res.send({ msg : err });
-				return;
-			}
-
-			// remove all the bulbs that live in containers or workspaces.
-			bulbs = bulbs.filter(function (bulb) {
-				return (!bulb.parentContainer &&
-						!bulb.parentWorkspace);
-			});
-
-			// strip out the text from the bulbs. 'forEach' works over 'map'
-			// here because bulbs are *persistent objects* with mutable fields.
-			bulbs.forEach(function (bulb) {
-				bulb.text = '';
-			});
-
-			// augment all the bulbs with their path data
-			function aux (inbox, outbox) {
-				if (inbox.length == 0) {
-					// send the list back when done
-					res.send(outbox);
-					return;
-				}
-
-				var bulb = inbox.pop();
-				bulb.augmentForExport(function (obj) {
-					outbox.push(obj);
-					aux(inbox, outbox);
-				});
-			}
-			aux(bulbs, []);
-		});
-	});
-
 	// CONSTRUCT NEW STANDARD BULB =============================================
 	app.post('/newbulb', app.isLoggedIn, function(req, res) {
 		var bulb = new Bulb();
@@ -506,6 +467,53 @@ module.exports = function(app) {
 
 					return aux(docs, []);
 				});
+		});
+	});
+
+	// RETURN A TEX DOCUMENT OF THIS NODE & CHILDREN ===========================
+	app.get('/bulb/:id/export', app.isLoggedIn, function(req, res) {
+		function aux(inbox, outbox) {
+			// if the inbox is empty, it's time to quit.
+			if (inbox.length == 0)
+				return res.send(outbox);
+
+			// chunk out the first entry in the non-empty inbox
+			var curBulb = inbox[0];
+
+			curBulb.hasReadAccess(req.user._id, function(ans) {
+				if (!ans) {
+					return res.send({msg : "Bad read access."});
+				}
+
+				// ok we're initialized and we have read access.
+				// convert this bulb into LaTeX code.
+				return curBulb.convertToLaTeX(0 // this is an unused depth field
+											   , function (newText) {
+					outbox += newText;
+
+					// now we need to find the descendant bulbs
+					return Bulb.find({
+						'parentContainer': curBulb._id
+					}, function(err, childDocs) {
+						if (err) {
+							return "Export failed.";
+						}
+
+						return aux(childDocs.concat(inbox.slice(1)), outbox);
+					});
+				});
+			});
+		};
+
+		// in order to start the loop, dereference the URL id to a bulb document
+		return Bulb.findById(req.params.id, function (err, startBulb) {
+			if (err || !startBulb) {
+				res.send({ msg : err });
+				return;
+			}
+
+			// otherwise, we have a bulb, so start the loop.
+			aux([startBulb], "");
 		});
 	});
 };
