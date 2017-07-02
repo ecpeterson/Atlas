@@ -1,45 +1,41 @@
-
 {
-	"name" : "atlas",
-	"version" : "0.0.1",
-	"description" : "Project management / collaboration / mindmapping web application",
-	"license" : "NCSA",
-	"bugs" : {
-		"url" : "http://github.com/ecpeterson/Atlas/issues"
+	"name": "atlas",
+	"version": "0.0.1",
+	"description": "Project management / collaboration / mindmapping web application",
+	"license": "NCSA",
+	"bugs": {
+		"url": "http://github.com/ecpeterson/Atlas/issues"
 	},
-	"repository" : {
-		"type" : "git",
-		"url" : "http://github.com/ecpeterson/"
+	"repository": {
+		"type": "git",
+		"url": "http://github.com/ecpeterson/"
 	},
-	"author" : {
-		"name" : "Eric Peterson",
-		"email" : "peterson.eric.c@gmail.com",
-		"url" : "https://github.com/ecpeterson/Atlas.git"
+	"author": {
+		"name": "Eric Peterson",
+		"email": "peterson.eric.c@gmail.com",
+		"url": "https://github.com/ecpeterson/Atlas.git"
 	},
-
-	"config" : {
-		"port" : "8080"
+	"config": {
+		"port": "8080"
 	},
-	"main" : "server.js",
-
-	"dependencies" : {
-		"express" : "~4.8.0",
-		"ejs" : "~0.8.5",
-		"mongoose" : "~3.8.1",
-		"passport" : "~0.1.17",
-		"passport-local" : "~0.1.6",    
-		"passport-facebook" : "~1.0.2", 
-		"passport-twitter" : "~1.0.2",  
-		"passport-google-oauth" : "~0.1.5",
-		"connect-flash" : "~0.1.1",     
-		"bcrypt-nodejs" : "latest",
-		"markdown" : "~0.5.0",
-		"nodemailer" : "latest",
-
-		"morgan": "~1.5.0",
-		"body-parser": "~1.0.0",
-		"cookie-parser": "~1.0.0",
-		"method-override": "~1.0.0",
-		"express-session": "~1.0.0"
+	"main": "server.js",
+	"dependencies": {
+		"bcrypt-nodejs": "*",
+		"body-parser": "*",
+		"connect-flash": "*",
+		"cookie-parser": "*",
+		"ejs": "*",
+		"express": "*",
+		"express-session": "*",
+		"markdown": "*",
+		"method-override": "*",
+		"mongoose": "*",
+		"morgan": "*",
+		"nodemailer": "*",
+		"passport": "*",
+		"passport-facebook": "*",
+		"passport-google-oauth": "*",
+		"passport-local": "*",
+		"passport-twitter": "*"
 	}
 }
