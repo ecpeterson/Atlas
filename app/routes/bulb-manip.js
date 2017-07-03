@@ -482,7 +482,6 @@ module.exports = function(app) {
 			}
 
 			// otherwise, we have a bulb, so start the loop.
-			console.log("A: " + JSON.stringify(startBulb));
 			Exporter.run(req.user._id, [startBulb], "", function (output) {
 				return res.send(output);
 			});
