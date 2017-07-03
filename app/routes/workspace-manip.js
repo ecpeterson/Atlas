@@ -4,6 +4,7 @@
 var Workspace = require('../models/workspace.js');
 var Bulb = require('../models/bulb.js');
 var User = require('../models/user.js');
+var Exporter = require('../misc/exporter.js');
 
 module.exports = function(app) {
 	// USER INTERFACE TO WORKSPACES ============================================
@@ -218,6 +219,54 @@ module.exports = function(app) {
 
 			res.send(workspaces);
 			return;
+		});
+	});
+
+	// BUILD A LATEX EXPORT OF THE INDICATED WORKSPACE =========================
+	app.get('/workspace/:id/export', app.isLoggedIn, function(req, res) {
+		Workspace.findById(req.params.id, function (err, workspace) {
+			if (err || !workspace) {
+				res.send({ msg : err });
+				return;
+			}
+
+			if (!workspace.hasAccess(req.user._id)) {
+				res.send({ msg : 'Bad access to workspace ' + req.params.id });
+				return;
+			}
+
+			Bulb.find({ parentWorkspace: workspace._id }, function(err, bulbs) {
+				if (err) {
+					res.send({ msg : err });
+					return;
+				}
+
+				// OK, now you have all the bulb objects.
+				Exporter.run(req.user._id, bulbs, "", function (result) {
+					return res.send(result);
+				});
+			});
+		});
+	});
+
+	// BUILD A LATEX EXPORT OF ALL OF THE NODES IN A USER'S TOPLEVEL ===========
+	app.get('/toplevel/export', app.isLoggedIn, function(req, res) {
+		Bulb.find( { ownerId : req.user._id }, function (err, bulbs) {
+			// check for errors
+			if (err || !bulbs) {
+				res.send({ msg : err });
+				return;
+			}
+
+			// remove all the bulbs that live in containers or workspaces.
+			bulbs = bulbs.filter(function (bulb) {
+				return (!bulb.parentContainer &&
+						!bulb.parentWorkspace);
+			});
+
+			Exporter.run(req.user._id, bulbs, "", function (result) {
+				return res.send(result);
+			});
 		});
 	});
 }

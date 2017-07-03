@@ -3,6 +3,7 @@
 
 var Bulb = require('../models/bulb.js');
 var User = require('../models/user.js');
+var Exporter = require('../misc/exporter.js');
 
 module.exports = function(app) {
 	// REQUEST INDIVIDUAL BULB DATA ============================================
@@ -472,48 +473,19 @@ module.exports = function(app) {
 
 	// RETURN A TEX DOCUMENT OF THIS NODE & CHILDREN ===========================
 	app.get('/bulb/:id/export', app.isLoggedIn, function(req, res) {
-		function aux(inbox, outbox) {
-			// if the inbox is empty, it's time to quit.
-			if (inbox.length == 0)
-				return res.send(outbox);
-
-			// chunk out the first entry in the non-empty inbox
-			var curBulb = inbox[0];
-
-			curBulb.hasReadAccess(req.user._id, function(ans) {
-				if (!ans) {
-					return res.send({msg : "Bad read access."});
-				}
-
-				// ok we're initialized and we have read access.
-				// convert this bulb into LaTeX code.
-				return curBulb.convertToLaTeX(0 // this is an unused depth field
-											   , function (newText) {
-					outbox += newText;
-
-					// now we need to find the descendant bulbs
-					return Bulb.find({
-						'parentContainer': curBulb._id
-					}, function(err, childDocs) {
-						if (err) {
-							return "Export failed.";
-						}
-
-						return aux(childDocs.concat(inbox.slice(1)), outbox);
-					});
-				});
-			});
-		};
-
 		// in order to start the loop, dereference the URL id to a bulb document
 		return Bulb.findById(req.params.id, function (err, startBulb) {
+			// if we can't find it, we should just bail.
 			if (err || !startBulb) {
 				res.send({ msg : err });
 				return;
 			}
 
 			// otherwise, we have a bulb, so start the loop.
-			aux([startBulb], "");
+			console.log("A: " + JSON.stringify(startBulb));
+			Exporter.run(req.user._id, [startBulb], "", function (output) {
+				return res.send(output);
+			});
 		});
 	});
 };
